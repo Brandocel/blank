@@ -1,6 +1,7 @@
 import { useLanguage } from "../../common/i18n/LanguageContext";
 import contactJson from "../../common/i18n/contact.json";
 import { useEffect, useRef, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 import contactImg from "../../assets/Contact/contact.png";
 
@@ -11,7 +12,7 @@ export default function ContactSection() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
-  // Detecta si la pantalla es 1920 × 1080
+  // Detecta si la pantalla es exactamente 1920×1080 para forzar medidas Figma
   const isDesktop1920 =
     window.innerWidth >= 1920 && window.innerHeight >= 1080;
 
@@ -26,6 +27,7 @@ export default function ContactSection() {
       },
       { threshold: 0.25 }
     );
+
     if (sectionRef.current) obs.observe(sectionRef.current);
   }, []);
 
@@ -82,7 +84,7 @@ export default function ContactSection() {
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(40px)",
             transition: "all 0.9s ease 0.2s",
-            flexShrink: 0, // evita que se haga más chico en 1920
+            flexShrink: 0,
           }}
         >
           {/* Fila 1 */}
@@ -102,20 +104,20 @@ export default function ContactSection() {
             <Input label={t.fields.message} textarea required />
           </div>
 
-          {/* CAPTCHA */}
+          {/* ⭐ RECAPTCHA REAL */}
           <div
             style={{
-              border: "2px solid #ddd",
-              padding: "15px",
-              width: "100%",
-              marginBottom: "1.5rem",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
             }}
           >
-            <div style={{ width: 20, height: 20, border: "2px solid #333" }} />
-            <span style={{ fontFamily: "Montserrat" }}>{t.captcha}</span>
+            <ReCAPTCHA
+              sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+              style={{
+                transform: "scale(1)",
+                transformOrigin: "left top",
+              }}
+            />
           </div>
 
           {/* BOTÓN */}
@@ -161,7 +163,6 @@ export default function ContactSection() {
               fontFamily: "Montserrat, sans-serif",
             }}
           >
-            {/* CORREO */}
             <div>
               <div
                 style={{
@@ -183,7 +184,6 @@ export default function ContactSection() {
               </div>
             </div>
 
-            {/* TELÉFONO */}
             <div>
               <div
                 style={{
@@ -217,7 +217,7 @@ export default function ContactSection() {
               objectFit: "cover",
               aspectRatio: "810 / 633",
               display: "block",
-              marginTop: "7px"
+              marginTop: "7px",
             }}
           />
         </div>
