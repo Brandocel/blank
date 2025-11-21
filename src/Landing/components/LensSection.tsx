@@ -31,21 +31,6 @@ export default function LensSection() {
     if (sectionRef.current) observer.observe(sectionRef.current);
   }, []);
 
-  // ⭐ SCALE automático (sí se mantiene)
-  useEffect(() => {
-    const updateScale = () => {
-      const grid = document.getElementById("lens-grid");
-      if (!grid) return;
-      const gridWidth = grid.scrollWidth;
-      const viewportWidth = window.innerWidth;
-      const scale = Math.min(1, viewportWidth / gridWidth);
-      document.documentElement.style.setProperty("--lens-scale", scale.toString());
-    };
-
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
-  }, []);
 
   return (
     <section
@@ -105,7 +90,7 @@ export default function LensSection() {
       >
         <div
           style={{
-            transform: "scale(var(--lens-scale))",
+            transform: "0.62",
             transformOrigin: "top center",
             width: "fit-content",
           }}
@@ -116,7 +101,7 @@ export default function LensSection() {
               display: "flex",
               justifyContent: "center",
               gap: "clamp(20px, 4vw, 72px)",
-              padding: "0 clamp(10px, 4vw, 80px)",
+              padding: "0 clamp(10px, 2vw, 80px)",
             }}
           >
             {t.items.map((item, index) => (
@@ -127,7 +112,7 @@ export default function LensSection() {
                   flexDirection: "column",
                   alignItems: "center",
                   textAlign: "center",
-                  width: "clamp(240px, 22vw, 385px)",
+                  width: "clamp(240px, 20vw, 385px)",
                   minWidth: "240px",
                   opacity: visible ? 1 : 0,
                   transform: visible ? "translateY(0)" : "translateY(40px)",

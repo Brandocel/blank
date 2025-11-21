@@ -4,17 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 import contactImg from "../../assets/Contact/contact.png";
+import React from "react";
 
 export default function ContactSection() {
   const { language } = useLanguage();
-  const t = contactJson[language];
+  const t = contactJson[language]
+
+  const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const [captchaValue, setCaptchaValue] = React.useState<string | null>(null);
   const [visible, setVisible] = useState(false);
 
   // Detecta si la pantalla es exactamente 1920×1080 para forzar medidas Figma
   const isDesktop1920 =
     window.innerWidth >= 1920 && window.innerHeight >= 1080;
+
+    const handleCaptchaChange = (value: string | null) => {
+		setCaptchaValue(value);
+	};
 
   // ⭐ Animación SOLO al entrar
   useEffect(() => {
@@ -40,7 +48,7 @@ export default function ContactSection() {
         margin: "0 auto",
         background: "#fff",
         color: "#141313",
-        padding: "8rem 0",
+        padding: "12rem 0",
       }}
     >
       {/* TÍTULO */}
@@ -81,6 +89,7 @@ export default function ContactSection() {
             height: isDesktop1920 ? "744px" : "auto",
             display: "flex",
             flexDirection: "column",
+            justifyContent: "space-between",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(40px)",
             transition: "all 0.9s ease 0.2s",
@@ -104,37 +113,53 @@ export default function ContactSection() {
             <Input label={t.fields.message} textarea required />
           </div>
 
-          {/* ⭐ RECAPTCHA REAL */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <ReCAPTCHA
-              sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-              style={{
-                transform: "scale(1)",
-                transformOrigin: "left top",
-              }}
-            />
-          </div>
+          {/* Google reCAPTCHA real */}
+                        <div
+                          style={{
+                            minWidth: 'clamp(120px, 12vw, 200px)',
+                            minHeight: 'clamp(32px, 3vw, 60px)',
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'flex-start'
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                            }}
+                          >
+                          <ReCAPTCHA
+                            key={language}  
+                            sitekey={RECAPTCHA_SITE_KEY}
+                            onChange={handleCaptchaChange}
+                            theme="light"
+                            hl={language}
+                          />
+                            </div>
+                        </div>
 
           {/* BOTÓN */}
           <button
-            style={{
-              width: "100%",
-              background: "#141313",
-              color: "#fff",
-              padding: "14px 0",
-              fontFamily: "Montserrat",
-              fontSize: "16px",
-              fontWeight: 600,
-              border: "none",
-              cursor: "pointer",
-              marginTop: "auto",
-            }}
-          >
+							type="submit"
+							style={{
+								background: captchaValue ? '#111' : '#888',
+								color: '#fff',
+								fontWeight: 700,
+								fontFamily: 'Montserrat, sans-serif',
+								fontSize: 'clamp(15px, 1.2vw, 20px)',
+								padding: 'clamp(10px, 1vw, 18px) clamp(32px, 4vw, 64px)',
+								border: 'none',
+								borderRadius: 4,
+								marginTop: 'clamp(8px, 1vw, 24px)',
+								cursor: captchaValue ? 'pointer' : 'not-allowed',
+								letterSpacing: 0.2,
+								opacity: captchaValue ? 1 : 0.6,
+								transition: 'background 0.2s, opacity 0.2s',
+							}}
+							disabled={!captchaValue}
+						>
             {t.button}
           </button>
         </form>
@@ -212,7 +237,7 @@ export default function ContactSection() {
             alt="Contact"
             style={{
               width: "100%",
-              height: isDesktop1920 ? "633px" : "auto",
+              height: "clamp(300px, 34vw, 633px)",
               maxWidth: "810px",
               objectFit: "cover",
               aspectRatio: "810 / 633",

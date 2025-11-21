@@ -16,16 +16,16 @@
   },
   "en": {
     "title": "CAREERS — JOIN BLANK",
-    "subtitle": "At Blank we look for creative and curious minds who want to challenge the status quo. If you are passionate about transforming ideas, this is your place.",
-    "name": "First name(s)",
-    "lastname": "Last name(s)",
+    "subtitle": "At Blank, we’re looking for creative and curious minds ready to challenge the status quo. If you’re passionate about transforming ideas, this is your place.",
+    "name": "First name",
+    "lastname": "Last name",
     "email": "Email",
     "phone": "Phone number",
     "message": "Message",
-    "attach": "Attach your CV and portfolio here",
+    "attach": "Upload your CV and portfolio here",
     "drop": "CLICK OR DRAG FILES HERE",
     "maxsize": "Max size 3 MB",
-    "portfolio": "Portfolio web link",
+    "portfolio": "Link to your portfolio website",
     "captcha": "I am not a robot",
     "send": "Send"
   }

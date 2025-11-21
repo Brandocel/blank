@@ -306,9 +306,11 @@ const Careers: React.FC = () => {
 									}}
 								>
 								<ReCAPTCHA
+									key={language}
 									sitekey={RECAPTCHA_SITE_KEY}
 									onChange={handleCaptchaChange}
 									theme="light"
+									hl={language}
 								/>
   								</div>
 							</div>
