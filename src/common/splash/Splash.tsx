@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import LogoSvgRaw from "../../assets/Footer/Blank_Logo.svg?raw";
+import LogoBlack from "../../assets/Footer/Blank_Logo.svg";
 
 type Props = { delayMs?: number; onDone?: () => void };
 
@@ -10,123 +10,121 @@ export default function Splash({ delayMs = 0, onDone }: Props) {
   useEffect(() => {
     let cancelled = false;
 
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
     const run = async () => {
-      if (delayMs) await new Promise(r => setTimeout(r, delayMs));
+      if (delayMs) await sleep(delayMs);
+
       const wrap = wrapRef.current;
       if (!wrap) return;
 
-      // Inyecta el SVG y toma referencia
-      wrap.innerHTML = LogoSvgRaw;
-      const svg = wrap.querySelector("svg") as SVGSVGElement | null;
-      if (!svg) return;
+      const logoWrapper = wrap.querySelector<HTMLElement>(".splash-logo");
+      const slices = Array.from(
+        wrap.querySelectorAll<HTMLDivElement>(".loader__slice")
+      );
 
-      // Tamaño y prevención de recortes
-      svg.setAttribute("width", "340");
-      svg.setAttribute("height", "80");
-      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-      (svg.style as any).overflow = "visible";
-      (svg.style as any).display = "block";
+      if (!logoWrapper) return;
 
+      // Estado inicial del logo (ya viene igual desde el JSX)
+      logoWrapper.style.opacity = "0";
+      logoWrapper.style.transform = "translateY(150%)";
 
-      // Selecciona todos los elementos relevantes para animar
-      const elements = Array.from(svg.querySelectorAll("path, rect, circle, ellipse, polygon, polyline, line"));
-
-      // 1) Estado inicial: SOLO contorno blanco (relleno transparente)
-      elements.forEach(el => {
-        el.removeAttribute("style");
-        el.removeAttribute("class");
-        el.removeAttribute("fill");
-        el.setAttribute("fill", "transparent");
-        el.setAttribute("stroke", "#fff");
-        el.setAttribute("stroke-width", "2");
-        el.setAttribute("stroke-linecap", "round");
-        el.setAttribute("stroke-linejoin", "round");
-
-        // getTotalLength solo existe en path, line, polyline, polygon, circle, ellipse
-        let len = 400;
-        try {
-          if (typeof (el as any).getTotalLength === "function") {
-            len = (el as any).getTotalLength();
-          }
-        } catch {}
-        (el as any).style.strokeDasharray = String(len);
-        (el as any).style.strokeDashoffset = String(len);
+      // Estado inicial de los bloques
+      slices.forEach((slice) => {
+        slice.style.transform = "translateY(0%)";
       });
 
-      // 2) Animación de dibujo (stagger suave)
-      await Promise.all(
-        elements.map((el, i) =>
-          el.animate(
-            [{ strokeDashoffset: (el as any).style.strokeDasharray }, { strokeDashoffset: "0" }],
+      // 1) Logo entra desde abajo
+      await logoWrapper
+        .animate(
+          [
+            { transform: "translateY(150%)", opacity: 0 },
+            { transform: "translateY(0%)", opacity: 1 },
+          ],
+          {
+            duration: 450,
+            easing: "cubic-bezier(.2,.7,0,1)",
+            fill: "forwards",
+          }
+        )
+        .finished.catch(() => {});
+      if (cancelled) return;
+
+      // Pausa para que se vea bien el logo
+      await sleep(900);
+      if (cancelled) return;
+
+      // 2) Logo se va hacia abajo
+      await logoWrapper
+        .animate(
+          [
+            { transform: "translateY(0%)", opacity: 1 },
+            { transform: "translateY(150%)", opacity: 0 },
+          ],
+          {
+            duration: 450,
+            easing: "cubic-bezier(.2,.7,0,1)",
+            fill: "forwards",
+          }
+        )
+        .finished.catch(() => {});
+      if (cancelled) return;
+
+      // 3) Bloques bajan
+      const sliceAnim = Promise.all(
+        slices.map((slice, i) =>
+          slice
+            .animate(
+              [
+                { transform: "translateY(0%)" },
+                { transform: "translateY(100%)" },
+              ],
+              {
+                duration: 900,
+                delay: i * 140,
+                easing: "cubic-bezier(.2,.7,0,1)",
+                fill: "forwards",
+              }
+            )
+            .finished.catch(() => {})
+        )
+      );
+
+      // Hero title (si lo tienes)
+      const heroSpan = document.querySelector<HTMLElement>(
+        ".hero__title span"
+      );
+      let heroAnim: Promise<unknown> | null = null;
+      if (heroSpan) {
+        heroSpan.style.display = "inline-block";
+        heroSpan.style.transform = "translateY(-100%)";
+        heroSpan.style.opacity = "0";
+
+        heroAnim = heroSpan
+          .animate(
+            [
+              { transform: "translateY(-100%)", opacity: 0 },
+              { transform: "translateY(0%)", opacity: 1 },
+            ],
             {
-              duration: 900,
-              delay: i * 60,
+              duration: 650,
+              delay: 250,
               easing: "cubic-bezier(.2,.7,0,1)",
               fill: "forwards",
             }
-          ).finished.catch(() => {})
-        )
-      );
-      if (cancelled) return;
-
-      // 3) Transición a LOGO RELLENO (blanco sólido) + desvanecer contorno
-      elements.forEach(el => el.setAttribute("fill", "#fff"));
-      await Promise.all(
-        elements.map(el =>
-          el.animate(
-            [
-              { fillOpacity: 0, strokeOpacity: 1 },
-              { fillOpacity: 1, strokeOpacity: 0 },
-            ],
-            { duration: 280, easing: "ease-out", fill: "forwards" }
-          ).finished.catch(() => {})
-        )
-      );
-      if (cancelled) return;
-
-      // 4) Viajar al logo del header
-      const target = document.getElementById("header-logo-slot");
-      if (target) {
-        const srcRect = svg.getBoundingClientRect();
-        const dstRect = target.getBoundingClientRect();
-        const srcCx = srcRect.left + srcRect.width / 2;
-        const srcCy = srcRect.top + srcRect.height / 2;
-        const dstCx = dstRect.left + dstRect.width / 2;
-        const dstCy = dstRect.top + dstRect.height / 2;
-
-        const dx = dstCx - srcCx;
-        const dy = dstCy - srcCy;
-        const scale = dstRect.height / srcRect.height;
-
-        const travel = wrap
-          .animate(
-            [
-              { transform: "translate(0px,0px) scale(1)" },
-              { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
-            ],
-            { duration: 650, easing: "cubic-bezier(.2,.7,0,1)", fill: "forwards" }
           )
           .finished.catch(() => {});
-        const backdrop = wrap.parentElement as HTMLDivElement;
-        const fade = backdrop
-          .animate(
-            [{ backgroundColor: "rgba(0,0,0,1)" }, { backgroundColor: "rgba(0,0,0,0)" }],
-            { duration: 550, easing: "linear", fill: "forwards", delay: 150 }
-          )
-          .finished.catch(() => {});
-        await Promise.all([travel, fade]);
       }
 
-      const headerSlot = document.getElementById("header-logo-slot");
-      if (headerSlot) headerSlot.style.opacity = "1";
+      await Promise.all([sliceAnim, heroAnim || Promise.resolve()]);
+      if (cancelled) return;
 
-      if (!cancelled) {
-        setVisible(false);
-        onDone?.();
-      }
+      setVisible(false);
+      onDone?.();
     };
 
     run();
+
     return () => {
       cancelled = true;
     };
@@ -136,19 +134,52 @@ export default function Splash({ delayMs = 0, onDone }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
-      style={{ background: "black" }}
+      className="fixed inset-0 z-[9999] overflow-hidden"
+      style={{
+        // Transparente para que se vea la landing detrás
+        backgroundColor: "transparent",
+        pointerEvents: "none",
+      }}
       aria-hidden
     >
       <div
         ref={wrapRef}
-        className="will-change-transform"
-        style={{
-          filter: "drop-shadow(0 0 16px rgba(255,255,255,.12))",
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      />
+        className="relative w-full h-full flex items-center justify-center"
+      >
+        {/* Logo central sin recuadro */}
+        <div
+          className="splash-logo z-[2]"
+          style={{ opacity: 0, transform: "translateY(150%)" }}
+        >
+          <img
+            src={LogoBlack}
+            alt="Black Logo"
+            className="h-14 w-auto block"
+          />
+        </div>
+
+        {/* Bloques / slices */}
+        <div
+          className="loader__slice absolute top-0 left-0 h-full"
+          style={{ width: "33.34vw", backgroundColor: "#1d1d1d" }}
+        />
+        <div
+          className="loader__slice absolute top-0 h-full"
+          style={{
+            left: "33.34vw",
+            width: "33.34vw",
+            backgroundColor: "#1d1d1d",
+          }}
+        />
+        <div
+          className="loader__slice absolute top-0 h-full"
+          style={{
+            left: "66.68vw",
+            width: "33.34vw",
+            backgroundColor: "#1d1d1d",
+          }}
+        />
+      </div>
     </div>
   );
 }

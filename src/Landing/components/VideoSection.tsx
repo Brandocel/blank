@@ -52,7 +52,7 @@ export default function VideoSection() {
         {/* COPY SUPERIOR */}
         <div className="mx-auto w-full max-w-[1440px] px-8 lg:px-16">
           <div className="mb-12 grid items-start gap-10 md:grid-cols-2">
-            {/* TÍTULO – bloque hacia la derecha, 3 líneas fijas */}
+            {/* TÍTULO – bloque hacia la izquierda, 3 líneas fijas */}
             <div className="flex justify-center md:justify-end">
               <h2
                 className="

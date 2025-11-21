@@ -11,7 +11,7 @@ body,
   height: 100%;
 }
 
-/* 2) Fuente global (si quieres puedes dejarla como estaba) */
+/* 2) Fuente global */
 body {
   @apply bg-slate-950 text-slate-50;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -40,7 +40,50 @@ body {
 }
 
 /* ==========================
-   CARRUSEL DE LOGOS (tal como ya lo tienes)
+   HERO – EFECTO ANCHO / DELGADO
+   ========================== */
+
+/* El layout base viene de Tailwind:
+   - .hero-track tiene display:flex en el JSX
+   - cada <figure> tiene basis-1/4 shrink-0 grow-0  → 4 columnas visibles
+   Aquí solo tocamos flex-basis en hover para que
+   la activa se ANCHE y las demás se hagan un poco más delgadas,
+   sin deformar la imagen (object-cover se encarga). */
+.hero-figure {
+  flex-basis: 25%;
+  flex-shrink: 0;
+  flex-grow: 0;
+  transition:
+    flex-basis 700ms cubic-bezier(.22, .61, .36, 1),
+    margin 700ms cubic-bezier(.22, .61, .36, 1);
+}
+
+/* Cuando el mouse está sobre el carrusel:
+   todas se vuelven un poquito más delgadas */
+.hero-track:hover .hero-figure {
+  flex-basis: 22%;
+}
+
+/* La que tiene el mouse encima se hace más ancha.
+   La suma queda: 7 * 22% + 30% = 214% (solo mientras hay hover),
+   la altura se mantiene, no se deforma nada. */
+.hero-track:hover .hero-figure:hover {
+  flex-basis: 30%;
+  margin-left: -0.25rem;
+  margin-right: -0.25rem;
+}
+
+/* En desktop damos un poco más de efecto */
+@media (min-width: 1024px) {
+  .hero-track:hover .hero-figure:hover {
+    flex-basis: 32%;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+}
+
+/* ==========================
+   CARRUSEL DE LOGOS
    ========================== */
 
 /* CONTENEDOR GENERAL DEL CARRUSEL */
@@ -54,15 +97,16 @@ body {
 .brands-track {
   display: flex;
   align-items: center;
-  gap: 3.5rem;               /* MISMA SEPARACIÓN ENTRE TODOS LOS LOGOS */
+  gap: 3.5rem;              /* separación entre logos */
   width: max-content;
-  animation: brands-scroll 40s linear infinite;
+  transform: translateX(-50%);          /* punto de inicio para el loop */
+  animation: brands-scroll-right 40s linear infinite;
 }
 
-/* Cada logo ocupa EXACTAMENTE el mismo ancho visual */
+/* Cada logo ocupa un slot más pequeño */
 .brands-slide {
-  flex: 0 0 220px;           /* ancho fijo por logo */
-  height: 4rem;              /* altura del carrusel de logos */
+  flex: 0 0 160px;          /* más compacto */
+  height: 3.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,7 +114,7 @@ body {
 
 /* Tamaño del logo dentro del “slot” */
 .brands-logo-img {
-  max-height: 3.2rem;
+  max-height: 2rem;         /* logos más pequeños */
   width: auto;
   display: block;
   opacity: 0.8;
@@ -104,12 +148,24 @@ body {
   background: linear-gradient(to left, rgba(0, 0, 0, 1), transparent);
 }
 
-/* Animación infinita suave */
-@keyframes brands-scroll {
+/* Animación infinita SUAVE hacia la DERECHA */
+@keyframes brands-scroll-right {
   0% {
-    transform: translateX(0);
-  }
-  100% {
     transform: translateX(-50%);
   }
+  100% {
+    transform: translateX(0);
+  }
 }
+
+/* Opcional: aún más pequeños en móvil */
+@media (max-width: 768px) {
+  .brands-slide {
+    flex-basis: 130px;
+  }
+
+  .brands-logo-img {
+    max-height: 1.6rem;
+  }
+}
+

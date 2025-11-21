@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { useLanguage, type Language } from "../../common/i18n/LanguageContext";
 
@@ -18,6 +18,8 @@ import oumaLogo from "../../assets/Logos/download.svg";
 import heroJson from "../../common/i18n/hero.json";
 
 const photos = [photo1, photo2, photo3, photo4real];
+// Duplicamos para cinta infinita
+const loopPhotos = [...photos, ...photos];
 
 type BrandLogo = {
   src: string;
@@ -42,10 +44,10 @@ const heroDictionary = heroJson as Record<Language, HeroCopy>;
 
 type HeroPhotoProps = {
   src: string;
-  index: number;
+  maskId: string;
 };
 
-function HeroPhoto({ src, index }: HeroPhotoProps) {
+function HeroPhoto({ src, maskId }: HeroPhotoProps) {
   const figureRef = useRef<HTMLElement | null>(null);
   const circleRef = useRef<SVGCircleElement | null>(null);
 
@@ -112,31 +114,33 @@ function HeroPhoto({ src, index }: HeroPhotoProps) {
         group
         relative
         h-full
-        flex-1
+        basis-1/4
+        shrink-0
+        grow-0
         overflow-hidden
-        transition-[flex] duration-500 ease-out
-        hover:flex-[1.5]
-        md:hover:flex-[1.7]
+        will-change-transform
       "
     >
       {/* Capa base en blanco y negro */}
       <img
         src={src}
-        alt={`Hero ${index + 1}`}
+        alt="Hero"
         className="
           h-full w-full
-          object-cover object-center   /* centrado: recorta arriba y abajo por igual */
+          object-cover object-center
           filter grayscale contrast-[1.25]
+          transition-transform duration-700 ease-[cubic-bezier(.22,.61,.36,1)]
+          group-hover:scale-[1.06]   /* zoom suave en la imagen */
         "
       />
 
       {/* Capa en color dentro de un SVG con máscara circular */}
       <svg
         className="absolute inset-0 h-full w-full"
-        preserveAspectRatio="xMidYMid slice"  /* centrado también en el SVG */
+        preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          <mask id={`hero-mask-${index}`}>
+          <mask id={maskId}>
             <rect width="100%" height="100%" fill="black" />
             <circle
               ref={circleRef}
@@ -154,8 +158,8 @@ function HeroPhoto({ src, index }: HeroPhotoProps) {
           href={src}
           width="100%"
           height="100%"
-          preserveAspectRatio="xMidYMid slice"  /* mismo centrado que la capa base */
-          mask={`url(#hero-mask-${index})`}
+          preserveAspectRatio="xMidYMid slice"
+          mask={`url(#${maskId})`}
         />
       </svg>
 
@@ -164,28 +168,10 @@ function HeroPhoto({ src, index }: HeroPhotoProps) {
         className="
           pointer-events-none absolute inset-0
           bg-black/20
-          transition-opacity duration-700
+          transition-opacity duration-700 ease-[cubic-bezier(.22,.61,.36,1)]
           group-hover:opacity-0
         "
       />
-
-      {/* Degradados extremos */}
-      {index === 0 && (
-        <div
-          className="
-            pointer-events-none absolute inset-0
-            bg-gradient-to-r from-black via-black/10 to-black/0
-          "
-        />
-      )}
-      {index === photos.length - 1 && (
-        <div
-          className="
-            pointer-events-none absolute inset-0
-            bg-gradient-to-l from-black via-black/10 to-black/0
-          "
-        />
-      )}
     </figure>
   );
 }
@@ -193,6 +179,40 @@ function HeroPhoto({ src, index }: HeroPhotoProps) {
 export default function HeroModule() {
   const { language } = useLanguage();
   const { tagline } = heroDictionary[language];
+
+  const heroTrackRef = useRef<HTMLDivElement | null>(null);
+  const heroTweenRef = useRef<gsap.core.Tween | null>(null);
+
+  // Animación automática del hero (cinta infinita, suave, en contra de los logos)
+  useEffect(() => {
+    if (!heroTrackRef.current) return;
+
+    const tween = gsap.fromTo(
+      heroTrackRef.current,
+      { xPercent: 0 },
+      {
+        // Logos se mueven a la derecha, hero hacia la izquierda
+        xPercent: -50,
+        duration: 45,
+        repeat: -1,
+        ease: "none",
+      }
+    );
+
+    heroTweenRef.current = tween;
+
+    return () => {
+      tween.kill();
+    };
+  }, []);
+
+  const handleHeroMouseEnter = () => {
+    heroTweenRef.current?.pause();
+  };
+
+  const handleHeroMouseLeave = () => {
+    heroTweenRef.current?.play();
+  };
 
   return (
     <section className="w-full bg-white text-slate-900">
@@ -214,18 +234,26 @@ export default function HeroModule() {
       <div className="w-full">
         <div
           className="
+            relative
             w-full
             h-[68vh] md:h-[72vh] lg:h-[76vh]
             max-h-[900px]
             overflow-hidden
             bg-black
           "
+          onMouseEnter={handleHeroMouseEnter}
+          onMouseLeave={handleHeroMouseLeave}
         >
-          <div className="flex w-full h-full">
-            {photos.map((src, idx) => (
-              <HeroPhoto key={idx} src={src} index={idx} />
+          {/* Track que se mueve */}
+          <div ref={heroTrackRef} className="hero-track flex h-full">
+            {loopPhotos.map((src, idx) => (
+              <HeroPhoto key={idx} src={src} maskId={`hero-mask-${idx}`} />
             ))}
           </div>
+
+          {/* Degradados fijos en los extremos */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-black via-black/40 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-black via-black/40 to-transparent" />
         </div>
       </div>
 

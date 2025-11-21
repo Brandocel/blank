@@ -17,7 +17,7 @@ export default function Inicio() {
       if (el) {
         setTimeout(() => {
           el.scrollIntoView({ behavior: 'smooth' });
-        }, 100); // pequeño delay para asegurar que el DOM esté listo
+        }, 100);
       }
     }
   }, []);
