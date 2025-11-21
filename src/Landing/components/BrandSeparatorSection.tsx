@@ -15,7 +15,7 @@ export default function BrandSeparatorSection() {
         /* Altura exacta de Figma, pero adaptable */
         minHeight: "clamp(120px, 14vw, 193px)",
 
-        display: "flex",
+        display: "flex",                                                                                                                                                                                                                                                                                                                                           
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",

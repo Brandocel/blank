@@ -13,7 +13,6 @@ import karavanaLogo from "../../assets/Logos/karavana.svg";
 import okkoLogo from "../../assets/Logos/okko.svg";
 import neroliLogo from "../../assets/Logos/neroli.svg";
 import garageLogo from "../../assets/Logos/garage.svg";
-// este es el SVG grande que ya dejaste en blanco
 import oumaLogo from "../../assets/Logos/download.svg";
 
 import heroJson from "../../common/i18n/hero.json";
@@ -31,7 +30,7 @@ const brandLogos: BrandLogo[] = [
   { src: okkoLogo, alt: "OKKO" },
   { src: neroliLogo, alt: "Neroli" },
   { src: garageLogo, alt: "Garage" },
-  { src: oumaLogo, alt: "Ouma" }, // ya es blanco en el SVG
+  { src: oumaLogo, alt: "Ouma" },
 ];
 
 type HeroCopy = {
@@ -126,7 +125,7 @@ function HeroPhoto({ src, index }: HeroPhotoProps) {
         alt={`Hero ${index + 1}`}
         className="
           h-full w-full
-          object-cover object-bottom
+          object-cover object-center   /* centrado: recorta arriba y abajo por igual */
           filter grayscale contrast-[1.25]
         "
       />
@@ -134,7 +133,7 @@ function HeroPhoto({ src, index }: HeroPhotoProps) {
       {/* Capa en color dentro de un SVG con máscara circular */}
       <svg
         className="absolute inset-0 h-full w-full"
-        preserveAspectRatio="xMidYMax slice"
+        preserveAspectRatio="xMidYMid slice"  /* centrado también en el SVG */
       >
         <defs>
           <mask id={`hero-mask-${index}`}>
@@ -155,7 +154,7 @@ function HeroPhoto({ src, index }: HeroPhotoProps) {
           href={src}
           width="100%"
           height="100%"
-          preserveAspectRatio="xMidYMax slice"
+          preserveAspectRatio="xMidYMid slice"  /* mismo centrado que la capa base */
           mask={`url(#hero-mask-${index})`}
         />
       </svg>
@@ -197,7 +196,7 @@ export default function HeroModule() {
 
   return (
     <section className="w-full bg-white text-slate-900">
-      {/* COPY DEL HERO (Montserrat Bold 40) */}
+      {/* COPY DEL HERO */}
       <div className="mx-auto max-w-6xl px-4 pt-30 pb-20 text-center">
         <p
           className="
@@ -210,7 +209,6 @@ export default function HeroModule() {
           “{tagline}”
         </p>
       </div>
-
 
       {/* HERO FOTOS */}
       <div className="w-full">
