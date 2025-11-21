@@ -6,10 +6,10 @@ import { useLanguage } from "../../common/i18n/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
 
 const navLinksKeys = [
-    { key: "inicio", href: "/" },
-    { key: "videos", href: "/videos" },
-    { key: "nosotros", href: "/nosotros" },
-    { key: "contacto", href: "/contacto" },
+    { key: "inicio", href: "#inicio" },
+    { key: "videos", href: "#videos" },
+    { key: "nosotros", href: "#nosotros" },
+    { key: "contacto", href: "#contacto" },
     { key: "careers", href: "/careers" },
 ];
 
@@ -29,7 +29,6 @@ const Navbar: React.FC = () => {
     const { language, setLanguage } = useLanguage();
     const t = navarData[language]?.nav;
     const location = useLocation();
-    const toggleLanguage = () => setLanguage(language === "es" ? "en" : "es");
     return (
         <nav
             style={{
@@ -64,26 +63,56 @@ const Navbar: React.FC = () => {
                 {/* Nav Links */}
                 <div style={{ display: "flex", alignItems: "center", gap: "clamp(8px, 2vw, 32px)" }}>
                     {navLinksKeys.map((link) => {
-                        const isActive = location.pathname === link.href;
-                        return (
-                            <Link
-                                key={link.key}
-                                to={link.href}
-                                style={{
-                                    color: "#222",
-                                    fontSize: "clamp(14px, 1vw, 20px)",
-                                    letterSpacing: 0.5,
-                                    textDecoration: "none",
-                                    borderBottom: isActive ? "2px solid #222" : "none",
-                                    paddingBottom: isActive ? 2 : 0,
-                                    fontWeight: 400,
-                                    transition: "border-bottom 0.2s",
-                                    fontFamily: 'Montserrat, sans-serif',
-                                }}
-                            >
-                                {t[link.key as keyof typeof t]}
-                            </Link>
-                        );
+                        if (link.key === "careers") {
+                            const isActive = location.pathname === link.href;
+                            return (
+                                <Link
+                                    key={link.key}
+                                    to={link.href}
+                                    style={{
+                                        color: "#222",
+                                        fontSize: "clamp(14px, 1vw, 20px)",
+                                        letterSpacing: 0.5,
+                                        textDecoration: "none",
+                                        borderBottom: isActive ? "2px solid #222" : "none",
+                                        paddingBottom: isActive ? 2 : 0,
+                                        fontWeight: 400,
+                                        transition: "border-bottom 0.2s",
+                                        fontFamily: 'Montserrat, sans-serif',
+                                    }}
+                                >
+                                    {t[link.key as keyof typeof t]}
+                                </Link>
+                            );
+                        } else {
+                            return (
+                                <a
+                                    key={link.key}
+                                    href={link.href}
+                                    style={{
+                                        color: "#222",
+                                        fontSize: "clamp(14px, 1vw, 20px)",
+                                        letterSpacing: 0.5,
+                                        textDecoration: "none",
+                                        borderBottom: "none",
+                                        fontWeight: 400,
+                                        transition: "border-bottom 0.2s",
+                                        fontFamily: 'Montserrat, sans-serif',
+                                    }}
+                                    onClick={e => {
+                                        e.preventDefault();
+                                        const el = document.getElementById(link.href.replace('#', ''));
+                                        if (el) {
+                                            el.scrollIntoView({ behavior: 'smooth' });
+                                        } else {
+                                            window.location.href = '/' + link.href;
+                                        }
+                                    }}
+                                >
+                                    {t[link.key as keyof typeof t]}
+                                </a>
+                            );
+                        }
                     })}
                 </div>
                 {/* Social & Language */}

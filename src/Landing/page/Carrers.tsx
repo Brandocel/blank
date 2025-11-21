@@ -1,3 +1,4 @@
+import { MdCloudUpload } from "react-icons/md";
 import ReCAPTCHA from "react-google-recaptcha";
 
 import React from "react";
@@ -116,27 +117,18 @@ const Careers: React.FC = () => {
 						{t('subtitle')}
 					</p>
 				</div>
-				<p style={{
-					fontSize: 'clamp(14px, 1.2vw, 18px)',
-					margin: 'clamp(8px, 1vw, 16px) 0 0 0',
-					color: '#111',
-					fontWeight: 400,
-					maxWidth: 900,
-				}}>
-					{t('subtitle')}
-				</p>
 				{/* Formulario y adjunto */}
 				<form
 					onSubmit={handleSubmit}
 					style={{
 						display: 'flex',
 						flexWrap: 'wrap',
-						gap: 'clamp(16px, 2vw, 32px)',
+						gap: 'clamp(32px, 7vw, 140px)',
 						width: '100%',
 					}}
 				>
 					{/* Columna izquierda: formulario */}
-					<div style={{ flex: 2, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 'clamp(12px, 1.5vw, 24px)' }}>
+					<div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 'clamp(12px, 1.5vw, 24px)' }}>
 						<div style={{ display: 'flex', gap: 'clamp(12px, 1vw, 20px)' }}>
 							<div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
 								<label style={{ fontWeight: 700, fontSize: 'clamp(13px, 1vw, 16px)', color: '#111' }}>{t('name')}<span style={{ color: 'red' }}>*</span></label>
@@ -232,14 +224,12 @@ const Careers: React.FC = () => {
 						</div>
 					</div>
 					{/* Columna derecha: adjunto y captcha */}
-					<div style={{ flex: 1.2, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 'clamp(12px, 1.5vw, 24px)' }}>
+					<div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 'clamp(12px, 1.5vw, 24px)' }}>
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 							<label style={{ fontWeight: 700, fontSize: 'clamp(13px, 1vw, 16px)', color: '#111' }}>{t('attach')}<span style={{ color: 'red' }}>*</span></label>
 							<div
 								style={{
-									border: '1.5px dashed #bbb',
-									borderRadius: 6,
-									background: '#f5f5f5',
+									background: '#EAEAEA',
 									minHeight: 'clamp(120px, 20vw, 160px)',
 									display: 'flex',
 									flexDirection: 'column',
@@ -247,7 +237,7 @@ const Careers: React.FC = () => {
 									justifyContent: 'center',
 									padding: 'clamp(16px, 2vw, 32px)',
 									textAlign: 'center',
-									color: '#111',
+									color: '#A6A6A6',
 									fontSize: 'clamp(13px, 1vw, 15px)',
 									position: 'relative',
 									cursor: 'pointer',
@@ -261,6 +251,7 @@ const Careers: React.FC = () => {
 									style={{ display: 'none' }}
 									onChange={handleFileChange}
 								/>
+								<MdCloudUpload style={{ fontSize: 'clamp(32px, 4vw, 48px)', color: '#A6A6A6', marginBottom: 8 }} />
 								{attachedFile ? (
 									<>
 										<span style={{ color: '#111', fontWeight: 600 }}>{attachedFile.name}</span>
@@ -269,7 +260,7 @@ const Careers: React.FC = () => {
 								) : (
 									<>
 										{t('drop')}<br />
-										<span style={{ fontSize: 'clamp(11px, 0.8vw, 13px)', color: '#888' }}>{t('maxsize')}</span>
+										<span style={{ fontSize: 'clamp(11px, 0.8vw, 13px)', color: '#A6A6A6' }}>{t('maxsize')}</span>
 									</>
 								)}
 								{fileError && <span style={{ color: 'red', fontSize: 12, marginTop: 6 }}>{fileError}</span>}
@@ -289,6 +280,9 @@ const Careers: React.FC = () => {
 										border: '1px solid #111',
 										borderRadius: 0,
 										color: '#111',
+										width: 'clamp(220px, 20vw, 420px)',
+										maxWidth: '100%',
+										boxSizing: 'border-box',
 									}}
 								/>
 							</div>

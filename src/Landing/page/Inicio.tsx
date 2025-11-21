@@ -15,12 +15,20 @@ export default function Inicio() {
 
   return (
     <div className="">
-      <HeroModule />
-      <FeatureSection />
-      <BrandSeparatorSection />
-      <LensSection />
-      <VideoSection />
-      <ContactSection />
+      <section id="inicio">
+        <HeroModule />
+      </section>
+      <section id="nosotros">
+        <FeatureSection />
+        <BrandSeparatorSection />
+        <LensSection />
+      </section>
+      <section id="videos">
+        <VideoSection />
+      </section>
+      <section id="contacto">
+        <ContactSection />
+      </section>
     </div>
   );
 }
