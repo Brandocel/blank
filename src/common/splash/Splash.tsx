@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import LogoSvgRaw from "../../assets/Footer/logosplash.svg?raw";
+import LogoSvgRaw from "../../assets/Footer/Blank_Logo.svg?raw";
 
 type Props = { delayMs?: number; onDone?: () => void };
 
@@ -21,39 +21,43 @@ export default function Splash({ delayMs = 0, onDone }: Props) {
       if (!svg) return;
 
       // Tamaño y prevención de recortes
-      svg.setAttribute("width", "228");
-      svg.setAttribute("height", "54");
+      svg.setAttribute("width", "340");
+      svg.setAttribute("height", "80");
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
       (svg.style as any).overflow = "visible";
       (svg.style as any).display = "block";
 
-      // Paths originales
-      const paths = Array.from(svg.querySelectorAll("path")) as SVGPathElement[];
+
+      // Selecciona todos los elementos relevantes para animar
+      const elements = Array.from(svg.querySelectorAll("path, rect, circle, ellipse, polygon, polyline, line"));
 
       // 1) Estado inicial: SOLO contorno blanco (relleno transparente)
-      paths.forEach(p => {
-        // quita estilos previos del archivo
-        p.removeAttribute("style");
-        p.setAttribute("fill", "transparent");
-        p.setAttribute("stroke", "#fff");
-        p.setAttribute("stroke-width", "2");
-        p.setAttribute("stroke-linecap", "round");
-        p.setAttribute("stroke-linejoin", "round");
+      elements.forEach(el => {
+        el.removeAttribute("style");
+        el.removeAttribute("class");
+        el.removeAttribute("fill");
+        el.setAttribute("fill", "transparent");
+        el.setAttribute("stroke", "#fff");
+        el.setAttribute("stroke-width", "2");
+        el.setAttribute("stroke-linecap", "round");
+        el.setAttribute("stroke-linejoin", "round");
 
-        const len =
-          typeof (p as any).getTotalLength === "function"
-            ? (p as any).getTotalLength()
-            : 400;
-
-        p.style.strokeDasharray = String(len);
-        p.style.strokeDashoffset = String(len);
+        // getTotalLength solo existe en path, line, polyline, polygon, circle, ellipse
+        let len = 400;
+        try {
+          if (typeof (el as any).getTotalLength === "function") {
+            len = (el as any).getTotalLength();
+          }
+        } catch {}
+        (el as any).style.strokeDasharray = String(len);
+        (el as any).style.strokeDashoffset = String(len);
       });
 
       // 2) Animación de dibujo (stagger suave)
       await Promise.all(
-        paths.map((p, i) =>
-          p.animate(
-            [{ strokeDashoffset: p.style.strokeDasharray }, { strokeDashoffset: "0" }],
+        elements.map((el, i) =>
+          el.animate(
+            [{ strokeDashoffset: (el as any).style.strokeDasharray }, { strokeDashoffset: "0" }],
             {
               duration: 900,
               delay: i * 60,
@@ -66,10 +70,10 @@ export default function Splash({ delayMs = 0, onDone }: Props) {
       if (cancelled) return;
 
       // 3) Transición a LOGO RELLENO (blanco sólido) + desvanecer contorno
-      paths.forEach(p => p.setAttribute("fill", "#fff"));
+      elements.forEach(el => el.setAttribute("fill", "#fff"));
       await Promise.all(
-        paths.map(p =>
-          p.animate(
+        elements.map(el =>
+          el.animate(
             [
               { fillOpacity: 0, strokeOpacity: 1 },
               { fillOpacity: 1, strokeOpacity: 0 },

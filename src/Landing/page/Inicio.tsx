@@ -1,5 +1,3 @@
-// src/Landing/page/Inicio.tsx
-
 import HeroModule from "../components/HeroModule";
 import { useLanguage } from "../../common/i18n/LanguageContext";
 import FeatureSection from "../components/DifferentiatorsSection";
