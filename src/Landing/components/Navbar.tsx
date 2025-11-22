@@ -41,6 +41,9 @@ const Navbar: React.FC = () => {
                 fontFamily: "inherit",
                 minHeight: "clamp(56px, 6vw, 172px)",
                 padding: 0,
+                position: "sticky",
+                top: 0,
+                zIndex: 100,
             }}
         >
             <div
