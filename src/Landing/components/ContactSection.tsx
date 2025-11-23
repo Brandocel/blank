@@ -4,27 +4,66 @@ import { useEffect, useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 import contactImg from "../../assets/Contact/contact.png";
-import React from "react";
 
 export default function ContactSection() {
   const { language } = useLanguage();
-  const t = contactJson[language]
-
-  const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+  const t = contactJson[language];
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
-  const [captchaValue, setCaptchaValue] = React.useState<string | null>(null);
   const [visible, setVisible] = useState(false);
 
-  // Detecta si la pantalla es exactamente 1920×1080 para forzar medidas Figma
+  // FORM STATE
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+
+  const [errors, setErrors] = useState<any>({});
+  const [captchaOK, setCaptchaOK] = useState(false);
+
+  // Detect MOBILE
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile =
+      window.innerWidth <= 768 ||
+      /iphone|ipad|android|mobile|touch|tablet/i.test(
+        navigator.userAgent.toLowerCase()
+      );
+    setIsMobile(checkMobile);
+  }, []);
+
+  // Detecta si pantalla es 1920×1080
   const isDesktop1920 =
     window.innerWidth >= 1920 && window.innerHeight >= 1080;
 
-    const handleCaptchaChange = (value: string | null) => {
-		setCaptchaValue(value);
-	};
+  // Validate field
+  const validateField = (field: string, value: string) => {
+    let error = "";
 
-  // ⭐ Animación SOLO al entrar
+    if (!value.trim()) error = "Required";
+    else if (field === "email" && !/\S+@\S+\.\S+/.test(value))
+      error = "Invalid email";
+
+    setErrors((prev: any) => ({ ...prev, [field]: error }));
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    validateField(field, value);
+  };
+
+  const isFormValid =
+    form.firstName.trim() &&
+    form.lastName.trim() &&
+    /\S+@\S+\.\S+/.test(form.email.trim()) &&
+    form.phone.trim() &&
+    form.message.trim() &&
+    captchaOK;
+
+  // Animación
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => {
@@ -35,9 +74,15 @@ export default function ContactSection() {
       },
       { threshold: 0.25 }
     );
-
     if (sectionRef.current) obs.observe(sectionRef.current);
   }, []);
+
+  // Submit
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+    console.log("Formulario enviado:", form);
+  };
 
   return (
     <section
@@ -48,10 +93,10 @@ export default function ContactSection() {
         margin: "0 auto",
         background: "#fff",
         color: "#141313",
-        padding: "12rem 0",
+        padding: "8rem 0",
       }}
     >
-      {/* TÍTULO */}
+      {/* TITLE */}
       <h2
         style={{
           fontFamily: "Montserrat, sans-serif",
@@ -70,26 +115,27 @@ export default function ContactSection() {
         {t.title}
       </h2>
 
-      {/* CONTENEDOR FLEX */}
+      {/* MAIN FLEX LAYOUT */}
       <div
         style={{
           display: "flex",
-          gap: "140px",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "40px" : "140px",
           padding: "0 clamp(20px, 4vw, 80px)",
           alignItems: "stretch",
           margin: "0 auto",
           width: "100%",
         }}
       >
-        {/* FORMULARIO */}
+        {/* FORM */}
         <form
+          onSubmit={handleSubmit}
           style={{
             flex: 1,
             maxWidth: isDesktop1920 ? "874px" : "650px",
             height: isDesktop1920 ? "744px" : "auto",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(40px)",
             transition: "all 0.9s ease 0.2s",
@@ -98,68 +144,85 @@ export default function ContactSection() {
         >
           {/* Fila 1 */}
           <div style={{ display: "flex", gap: "1rem", marginBottom: "1.2rem" }}>
-            <Input label={t.fields.firstName} required />
-            <Input label={t.fields.lastName} required />
+            <Input
+              label={t.fields.firstName}
+              required
+              value={form.firstName}
+              onChange={(v: string) => handleChange("firstName", v)}
+              error={errors.firstName}
+            />
+            <Input
+              label={t.fields.lastName}
+              required
+              value={form.lastName}
+              onChange={(v: string) => handleChange("lastName", v)}
+              error={errors.lastName}
+            />
           </div>
 
           {/* Fila 2 */}
           <div style={{ display: "flex", gap: "1rem", marginBottom: "1.2rem" }}>
-            <Input label={t.fields.email} required />
-            <Input label={t.fields.phone} required />
+            <Input
+              label={t.fields.email}
+              required
+              value={form.email}
+              onChange={(v: string) => handleChange("email", v)}
+              error={errors.email}
+            />
+            <Input
+              label={t.fields.phone}
+              required
+              value={form.phone}
+              onChange={(v: string) => handleChange("phone", v)}
+              error={errors.phone}
+            />
           </div>
 
           {/* Mensaje */}
           <div style={{ marginBottom: "1.2rem" }}>
-            <Input label={t.fields.message} textarea required />
+            <Input
+              label={t.fields.message}
+              textarea
+              required
+              value={form.message}
+              onChange={(v: string) => handleChange("message", v)}
+              error={errors.message}
+            />
           </div>
 
-          {/* Google reCAPTCHA real */}
-                        <div
-                          style={{
-                            minWidth: 'clamp(120px, 12vw, 200px)',
-                            minHeight: 'clamp(32px, 3vw, 60px)',
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            justifyContent: 'flex-start'
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                            }}
-                          >
-                          <ReCAPTCHA
-                            key={language}  
-                            sitekey={RECAPTCHA_SITE_KEY}
-                            onChange={handleCaptchaChange}
-                            theme="light"
-                            hl={language}
-                          />
-                            </div>
-                        </div>
+{/* RECAPTCHA */}
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    marginBottom: isMobile ? "15px" : "0px", // ⭐ SOLO EN MOBILE AGREGA ESPACIO
+  }}
+>
+  <ReCAPTCHA
+    sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+    onChange={(token) => setCaptchaOK(!!token)}
+    onExpired={() => setCaptchaOK(false)}
+    onErrored={() => setCaptchaOK(false)}
+  />
+</div>
+
 
           {/* BOTÓN */}
           <button
-							type="submit"
-							style={{
-								background: captchaValue ? '#111' : '#888',
-								color: '#fff',
-								fontWeight: 700,
-								fontFamily: 'Montserrat, sans-serif',
-								fontSize: 'clamp(15px, 1.2vw, 20px)',
-								padding: 'clamp(10px, 1vw, 18px) clamp(32px, 4vw, 64px)',
-								border: 'none',
-								borderRadius: 4,
-								marginTop: 'clamp(8px, 1vw, 24px)',
-								cursor: captchaValue ? 'pointer' : 'not-allowed',
-								letterSpacing: 0.2,
-								opacity: captchaValue ? 1 : 0.6,
-								transition: 'background 0.2s, opacity 0.2s',
-							}}
-							disabled={!captchaValue}
-						>
+            disabled={!isFormValid}
+            style={{
+              width: "100%",
+              background: !isFormValid ? "#888" : "#141313",
+              color: "#fff",
+              padding: "14px 0",
+              fontFamily: "Montserrat",
+              fontSize: "16px",
+              fontWeight: 600,
+              border: "none",
+              cursor: isFormValid ? "pointer" : "not-allowed",
+              marginTop: "auto",
+            }}
+          >
             {t.button}
           </button>
         </form>
@@ -180,14 +243,17 @@ export default function ContactSection() {
           }}
         >
           {/* DATOS */}
-          <div
-            style={{
-              display: "flex",
-              gap: "140px",
-              marginBottom: "53px",
-              fontFamily: "Montserrat, sans-serif",
-            }}
-          >
+<div
+  style={{
+    display: "flex",
+    flexDirection: window.innerWidth < 768 ? "row" : "row", // igual, pero controlamos gaps
+    justifyContent: "space-between",
+    gap: window.innerWidth < 768 ? "20px" : "140px", // 👈 mobile reducido
+    marginBottom: window.innerWidth < 768 ? "32px" : "53px",
+    fontFamily: "Montserrat, sans-serif",
+  }}
+>
+
             <div>
               <div
                 style={{
@@ -231,17 +297,17 @@ export default function ContactSection() {
             </div>
           </div>
 
-          {/* IMAGEN */}
+          {/* IMG — **SE MANTIENE EXACTA A TU DISEÑO** */}
           <img
             src={contactImg}
             alt="Contact"
             style={{
               width: "100%",
-              height: "clamp(300px, 34vw, 633px)",
+              height: isDesktop1920 ? "633px" : "auto",
               maxWidth: "810px",
               objectFit: "cover",
               aspectRatio: "810 / 633",
-              display: "block",
+              display: window.innerWidth < 768 ? "none" : "block", // 👈 ocultar solo mobile
               marginTop: "7px",
             }}
           />
@@ -251,24 +317,31 @@ export default function ContactSection() {
   );
 }
 
-/* ⭐ INPUT COMPONENT */
-function Input({ label, required, textarea }: any) {
+/* INPUT */
+function Input({ label, required, textarea, value, onChange, error }: any) {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <label
-        style={{
-          fontFamily: "Montserrat, sans-serif",
-          fontWeight: 700,
-          fontSize: "clamp(16px, 2vw, 24px)",
-          marginBottom: "8px",
-        }}
-      >
-        {label}
-        {required && <span style={{ color: "red" }}> *</span>}
-      </label>
+<label
+  style={{
+    fontFamily: "Montserrat, sans-serif",
+    fontWeight: 700,
+    fontSize: "clamp(16px, 2vw, 24px)",
+    marginBottom: "8px",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px", // pequeño espacio elegante
+    whiteSpace: "nowrap", // evita que el * se vaya a otra línea
+  }}
+>
+  <span>{label}</span>
+  {required && <span style={{ color: "red" }}>*</span>}
+</label>
+
 
       {textarea ? (
         <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           style={{
             width: "100%",
             height: "clamp(140px, 10vw, 198px)",
@@ -284,6 +357,8 @@ function Input({ label, required, textarea }: any) {
       ) : (
         <input
           type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           style={{
             width: "100%",
             height: "clamp(60px, 4vw, 72px)",
@@ -294,6 +369,12 @@ function Input({ label, required, textarea }: any) {
             outline: "none",
           }}
         />
+      )}
+
+      {error && (
+        <span style={{ color: "red", fontSize: "14px", marginTop: "4px" }}>
+          {error}
+        </span>
       )}
     </div>
   );
