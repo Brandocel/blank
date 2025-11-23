@@ -1,7 +1,7 @@
 {
   "es": {
-    "title": "A TRAVÉS DE NUESTRO LENTE",
-    "subtitle": "Contamos historias y conectamos con la gente.",
+    "title": "A TRAVÉS DE NUESTRA VISIÓN",
+    "subtitle": "Contamos historias que conectan con el público.",
     "items": [
       { "title": "NARRATIVA\nCINEMATOGRÁFICA" },
       { "title": "POST-PRODUCCIÓN\nCURADA" },
@@ -10,7 +10,7 @@
     ]
   },
   "en": {
-    "title": "THROUGH OUR LENS",
+    "title": "THROUGH OUR VISION",
     "subtitle": "We tell stories and connect with people.",
     "items": [
       { "title": "CINEMATIC\nSTORYTELLING" },
