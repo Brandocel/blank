@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
 import { useLanguage, type Language } from "../../common/i18n/LanguageContext";
 import videoJson from "../../common/i18n/video.json";
-
-// Ajusta el nombre/ruta si tu archivo se llama distinto
 import weddingVideo from "../../assets/Video/¿Qué nos hace humanos_.mp4";
 
 type VideoCopy = {
@@ -45,54 +43,82 @@ export default function VideoSection() {
     }
   };
 
+  const isEnglish = language === "en";
+
   return (
     <section className="w-full min-h-screen bg-[#141313] text-white py-[8rem]">
-      {/* contenedor vertical para que el video pueda crecer */}
       <div className="flex h-full w-full flex-col">
         {/* COPY SUPERIOR */}
         <div className="mx-auto w-full max-w-[1440px] px-8 lg:px-16">
-          <div className="mb-12 grid items-start gap-10 md:grid-cols-2">
-            {/* TÍTULO – bloque hacia la izquierda, 3 líneas fijas */}
+          <div
+            className="
+              mb-10
+              grid 
+              md:grid-cols-2
+              md:items-center
+            "
+          >
+            {/* TÍTULO */}
             <div className="flex justify-center md:justify-end">
               <h2
-                className="
+                className={`
                   max-w-[652px]
                   font-['Montserrat']
                   font-bold
                   uppercase
                   text-center md:text-right
-                  text-[32px] md:text-[28px]
-                  leading-[1.3]
-                  tracking-[0.18em]
-                "
+                  ${
+                    isEnglish
+                      ? "text-[24px] md:text-[28px] lg:text-[30px]"
+                      : "text-[28px] md:text-[30px] lg:text-[32px]"
+                  }
+                  leading-[1.2]
+                  ${isEnglish ? "tracking-[0.16em]" : "tracking-[0.20em]"}
+                `}
               >
-                {titleLines.map((line) => (
-                  <span key={line} className="block">
+                {titleLines.map((line, index) => (
+                  <span key={`${language}-${index}`} className="block">
                     {line}
                   </span>
                 ))}
               </h2>
             </div>
 
-            {/* DESCRIPCIÓN – centrada y con ancho controlado */}
-            <div className="flex justify-center md:justify-start md:pl-8">
-              <p
-                className="
-                  max-w-[540px]
-                  font-['Montserrat']
-                  text-[18px] md:text-[21px]
-                  leading-[1.4]
-                  text-center md:text-left
-                  whitespace-pre-line
-                "
-              >
-                {description}
-              </p>
+            {/* DESCRIPCIÓN */}
+            <div className="flex justify-center md:justify-start md:pl-4">
+              {isEnglish ? (
+                // 🔹 INGLÉS: un poco más grande + más interlineado
+                <p
+                  className="
+                    max-w-[540px]
+                    font-['Montserrat']
+                    text-[18px] md:text-[20px] lg:text-[22px]  /* 👈 subimos tamaño */
+                    leading-[1.4]
+                    text-center md:text-left
+                  "
+                >
+                  {description.replace(/\n/g, " ")}
+                </p>
+              ) : (
+                // 🔹 ESPAÑOL: NO SE TOCA
+                <p
+                  className="
+                    max-w-[540px]
+                    font-['Montserrat']
+                    text-[16px] md:text-[18px] lg:text-[20px]
+                    leading-[1.2]
+                    text-center md:text-left
+                    whitespace-pre-line
+                  "
+                >
+                  {description}
+                </p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* VIDEO ocupa el resto de la pantalla */}
+        {/* VIDEO */}
         <div className="mt-6 flex-1">
           <div className="mx-auto h-full w-full max-w-[1440px] px-8 lg:px-16">
             <div
@@ -110,13 +136,12 @@ export default function VideoSection() {
                 className="h-full w-full object-cover"
                 preload="metadata"
                 onEnded={handleEnded}
-                onClick={handleVideoClick}   // 👈 click en el video = play/pause
+                onClick={handleVideoClick}
               >
                 <source src={weddingVideo} type="video/mp4" />
                 Tu navegador no soporta video HTML5.
               </video>
 
-              {/* Overlay + botón play cuando no está reproduciendo */}
               {!isPlaying && (
                 <>
                   <div className="pointer-events-none absolute inset-0 bg-black/35" />

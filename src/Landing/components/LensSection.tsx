@@ -1,16 +1,14 @@
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../common/i18n/LanguageContext";
 import lensJson from "../../common/i18n/lens.json";
-import { useEffect, useRef, useState } from "react";
 
-// Swiper SOLO para mobile
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
-// @ts-ignore
+//@ts-ignore
 import "swiper/css";
-// @ts-ignore
+//@ts-ignore
 import "swiper/css/pagination";
 
-// ⭐ Videos
 import clip1 from "../../assets/Lens/BLANK 02.mov";
 import clip2 from "../../assets/Lens/BLANK 0202.mov";
 import clip3 from "../../assets/Lens/Blank 0101.mov";
@@ -19,26 +17,26 @@ import clip4 from "../../assets/Lens/Blank 4.mp4";
 export default function LensSection() {
   const { language } = useLanguage();
   const t = lensJson[language];
+
   const videos = [clip1, clip2, clip3, clip4];
-  const [clicked, setClicked] = useState<boolean[]>([false, false, false, false]);
 
+  // Usamos solo tantos items como videos tengamos
+  const items = (t.items as any[]).slice(0, videos.length);
 
+  // Overlay “toca para reproducir” en mobile
+  const [clicked, setClicked] = useState<boolean[]>(
+    new Array(videos.length).fill(false)
+  );
+
+  // Cuando cambia el idioma, reseteamos los “clicked”
+  useEffect(() => {
+    setClicked(new Array(videos.length).fill(false));
+  }, [language]);
+
+  // Animación al entrar en viewport
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Detectar móvil
-useEffect(() => {
-  const ua = navigator.userAgent.toLowerCase();
-  const isMobileDevice =
-    /iphone|ipad|android|mobile|touch|tablet/.test(ua) ||
-    window.innerWidth <= 768;
-
-  setIsMobile(isMobileDevice);
-}, []);
-
-
-  // Animación título/sub
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -51,224 +49,181 @@ useEffect(() => {
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
+
+    return () => observer.disconnect();
   }, []);
 
   return (
     <section
       ref={sectionRef}
-      style={{
-        width: "100%",
-        maxWidth: "1920px",
-        margin: "0 auto",
-        background: "#fff",
-        color: "#141313",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        padding: "8rem 0",
-      }}
+      className="w-full bg-white text-[#141313] py-[8rem]"
     >
-      {/* TITLE */}
-      <h2
-        style={{
-          fontFamily: "Montserrat",
-          fontWeight: 700,
-          fontSize: "clamp(15px, 2.1vw, 40px)",
-          textAlign: "center",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(30px)",
-          transition: "all 0.8s ease",
-        }}
-      >
-        {t.title}
-      </h2>
+      <div className="flex w-full flex-col">
+        {/* ====================== HEADER ====================== */}
+        <div className="mx-auto w-full max-w-[1440px] px-4 md:px-8 lg:px-16">
+          <div className="flex flex-col items-center">
+            {/* TITLE */}
+            <h2
+              className={`
+                font-['Montserrat']
+                font-bold
+                text-center
+                uppercase
+                text-[20px] md:text-[22px] lg:text-[24px]
+                leading-[1.3]
+                tracking-normal
+                transition-all duration-700
+                ${
+                  visible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-6"
+                }
+              `}
+            >
+              {t.title}
+            </h2>
 
-      {/* SUBTITLE */}
-      <p
-        style={{
-          fontFamily: "Montserrat",
-          fontWeight: 400,
-          fontSize: "clamp(18px, 1.7vw, 32px)",
-          textAlign: "center",
-          marginBottom: "clamp(20px, 3vw, 70px)",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(30px)",
-          transition: "all 0.8s ease 0.15s",
-        }}
-      >
-        {t.subtitle}
-      </p>
+            {/* SUBTITLE */}
+            <p
+              className={`
+                mt-1
+                max-w-[720px]
+                font-['Montserrat']
+                text-[16px] md:text-[18px]
+                leading-[1.3]
+                text-center
+                transition-all duration-700 delay-150
+                ${
+                  visible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-6"
+                }
+              `}
+            >
+              {t.subtitle}
+            </p>
+          </div>
+        </div>
 
-      {/* ========================================== */}
-      {/*               MOBILE VERSION              */}
-      {/* ========================================== */}
-      {isMobile && (
-        <Swiper
-          modules={[Pagination]}
-          pagination={{ clickable: true }}
-          spaceBetween={20}
-          slidesPerView={1}
-          style={{
-            width: "100%",
-            maxWidth: "420px",
-            margin: "0 auto",
-          }}
-          onSlideChange={(swiper) => {
-  const videos = swiper.slides.map(s => s.querySelector("video"));
-  videos.forEach((v) => v && v.pause());
-}}
-
-        >
-          {t.items.map((item, index) => (
-            <SwiperSlide key={item.title}>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  textAlign: "center",
-                }}
-              >
-                {/* VIDEO — mobile ajustado */}
-<div style={{ position: "relative" }}>
-  {/* OVERLAY — aparece antes de darle clic */}
-  {!clicked[index] && (
-    <div
-      style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        pointerEvents: "none",
-        zIndex: 5,
-        color: "#fff",
-        textShadow: "0px 2px 8px rgba(0,0,0,0.5)",
-        animation: "pulse 1.8s infinite",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "52px",
-          opacity: 0.9,
-        }}
-      >
-        ▶
-      </div>
-      <p
-        style={{
-          fontSize: "14px",
-          marginTop: "6px",
-          fontWeight: 500,
-        }}
-      >
-        Toca para reproducir
-      </p>
-    </div>
-  )}
-
-  {/* VIDEO MOBILE */}
-  <video
-    src={videos[index]}
-    muted
-    playsInline
-    preload="metadata"
-    disablePictureInPicture
-    controlsList="nodownload nofullscreen noremoteplayback"
-    style={{
-      width: "90vw",
-      maxWidth: "360px",
-      height: "65vh",
-      maxHeight: "480px",
-      objectFit: "cover",
-      borderRadius: "8px",
-      display: "block",
-      margin: "0 auto",
-    }}
-    onClick={(e) => {
-      const video = e.currentTarget;
-      video.currentTime = video.currentTime; // iOS fix
-      video.play();
-
-      // ocultar overlay solo para ese video
-      setClicked((prev) => {
-        const updated = [...prev];
-        updated[index] = true;
-        return updated;
-      });
-    }}
-  />
-</div>
-
-
-                {/* TITLE */}
-                <h3
-                  style={{
-                    fontFamily: "Montserrat",
-                    fontWeight: 700,
-                    fontSize: "18px",
-                    marginTop: "14px",
-                    marginBottom: "18px",
-                  }}
-                >
-                  {item.title}
-                </h3>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      )}
-
-      {/* ========================================== */}
-      {/*               DESKTOP VERSION              */}
-      {/* ========================================== */}
-      {!isMobile && (
-        <div
-          style={{
-            width: "100%",
-            overflow: "hidden",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <div style={{ transformOrigin: "top center", width: "fit-content" }}>
-            <div
-              id="lens-grid"
+        {/* ===================== MOBILE (SWIPER) ===================== */}
+        <div className="mt-6 block md:hidden">
+          <div className="mx-auto w-full max-w-[1440px] px-4 md:px-8 lg:px-16">
+            <Swiper
+              key={language}                 // 👈 fuerza a recrear Swiper al cambiar idioma
+              modules={[Pagination]}
+              pagination={{ clickable: true }}
+              spaceBetween={20}
+              slidesPerView={1}
               style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "clamp(20px, 4vw, 72px)",
-                padding: "0 clamp(10px, 2vw, 80px)",
+                width: "100%",
+                maxWidth: "420px",
+                margin: "0 auto",
+              }}
+              onSlideChange={(swiper) => {
+                const vs = swiper.slides.map((s) =>
+                  s.querySelector("video")
+                ) as (HTMLVideoElement | null)[];
+                vs.forEach((v, i) => {
+                  if (!v) return;
+                  if (i === swiper.activeIndex) return;
+                  v.pause();
+                });
               }}
             >
-              {t.items.map((item, index) => (
+              {items.map((item, index) => (
+                <SwiperSlide key={`${language}-${index}`}>
+                  <div className="flex flex-col items-center text-center">
+                    {/* VIDEO MOBILE – clic para play/pause, en loop */}
+                    <div className="relative w-[90vw] max-w-[360px] h-[75vh] max-h-[560px] overflow-hidden">
+                      {!clicked[index] && (
+                        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] animate-pulse">
+                          <div className="text-[52px] opacity-90">▶</div>
+                          <p className="mt-2 text-[14px] font-medium">
+                            Toca para reproducir
+                          </p>
+                        </div>
+                      )}
+
+                      <video
+                        src={videos[index]}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        loop
+                        disablePictureInPicture
+                        controlsList="nodownload nofullscreen noremoteplayback"
+                        className="h-full w-full object-cover"
+                        onClick={(e) => {
+                          const video = e.currentTarget;
+
+                          if (video.paused) {
+                            video.play();
+                          } else {
+                            video.pause();
+                          }
+
+                          setClicked((prev) => {
+                            if (prev[index]) return prev;
+                            const updated = [...prev];
+                            updated[index] = true;
+                            return updated;
+                          });
+                        }}
+                      />
+                    </div>
+
+                    {/* TITLE MOBILE ABAJO DEL VIDEO */}
+                    <h3
+                      className="
+                        mt-4 mb-5
+                        font-['Montserrat']
+                        text-[14px]
+                        md:text-[16px]
+                        font-bold
+                        uppercase
+                        tracking-[0.12em]
+                      "
+                    >
+                      {item.title}
+                    </h3>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+        </div>
+
+        {/* ===================== DESKTOP / TABLET ===================== */}
+        <div className="mt-12 hidden md:block">
+          <div className="mx-auto w-full max-w-[1440px] px-4 md:px-8 lg:px-16">
+            <div className="grid w-full grid-cols-4 gap-6 lg:gap-10">
+              {items.map((item, index) => (
                 <div
-                  key={item.title}
+                  key={`${language}-${index}`}
+                  className={`
+                    flex flex-col items-center text-center
+                    w-full
+                    transition-all duration-700
+                    ${
+                      visible
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-10"
+                    }
+                  `}
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                    width: "clamp(240px, 20vw, 385px)",
-                    minWidth: "240px",
-                    opacity: visible ? 1 : 0,
-                    transform: visible ? "translateY(0)" : "translateY(40px)",
-                    transition: `all 0.9s ease ${0.25 + index * 0.2}s`,
+                    transitionDelay: `${250 + index * 200}ms`,
                   }}
                 >
                   <h3
-                    style={{
-                      fontFamily: "Montserrat",
-                      fontWeight: 700,
-                      fontSize: "clamp(16px, 1.4vw, 26px)",
-                      lineHeight: "130%",
-                      marginBottom: "clamp(8px, 1vw, 16px)",
-                      whiteSpace: "pre-line",
-                      color: "#000",
-                    }}
+                    className="
+                      mb-3
+                      font-['Montserrat']
+                      text-[16px] md:text-[18px] lg:text-[20px]
+                      font-bold
+                      leading-[1.3]
+                      whitespace-pre-line
+                      text-black
+                    "
                   >
                     {item.title}
                   </h3>
@@ -278,26 +233,28 @@ useEffect(() => {
                     muted
                     playsInline
                     preload="metadata"
+                    loop
                     disablePictureInPicture
                     controlsList="nodownload nofullscreen noremoteplayback"
-                    style={{
-                      width: "100%",
-                      aspectRatio: "385.62 / 685.7",
-                      objectFit: "cover",
-                      display: "block",
-                      transition: "all 0.4s ease",
-                      maxHeight: "55vh",
-                      filter: "grayscale(100%)",
-                    }}
+                    className="
+                      w-full
+                      max-h-[50vh]
+                      aspect-[9/16]
+                      object-cover
+                      transition-all duration-300
+                      grayscale
+                    "
                     onMouseEnter={(e) => {
-                      e.currentTarget.play();
-                      e.currentTarget.style.transform = "scale(1.05)";
-                      e.currentTarget.style.filter = "grayscale(0%)";
+                      const v = e.currentTarget;
+                      v.play();
+                      v.style.transform = "scale(1.05)";
+                      v.style.filter = "grayscale(0%)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.pause();
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.filter = "grayscale(100%)";
+                      const v = e.currentTarget;
+                      v.pause();
+                      v.style.transform = "scale(1)";
+                      v.style.filter = "grayscale(100%)";
                     }}
                   />
                 </div>
@@ -305,7 +262,7 @@ useEffect(() => {
             </div>
           </div>
         </div>
-      )}
+      </div>
     </section>
   );
 }
