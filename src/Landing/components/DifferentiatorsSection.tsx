@@ -148,13 +148,11 @@ export default function DifferentiatorsSection() {
   const t = differentiatorsJson[language];
 
   const images = [img1, img2, img3];
-  // por si en algún idioma hay más ítems que imágenes
   const items = (t.items as any[]).slice(0, images.length);
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
-  // Animación activada SOLO cuando se ve la sección
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -263,7 +261,19 @@ export default function DifferentiatorsSection() {
                 {item.title}
               </h3>
 
-              <RevealMaskImage src={images[index]} alt={item.title} />
+              {/* Mobile: imagen a color directa */}
+              <div className="w-full block md:hidden">
+                <img
+                  src={images[index]}
+                  alt={item.title}
+                  className="w-full aspect-[573/346] object-cover"
+                />
+              </div>
+
+              {/* Desktop/Tablet: efecto de máscara + blanco y negro */}
+              <div className="hidden md:block w-full">
+                <RevealMaskImage src={images[index]} alt={item.title} />
+              </div>
             </div>
           ))}
         </div>
