@@ -7,7 +7,6 @@ import img1 from "../../assets/Differentiators/img.jpg";
 import img2 from "../../assets/Differentiators/img1.jpg";
 import img3 from "../../assets/Differentiators/img2.jpg";
 
-
 function RevealMaskImage({ src, alt }: { src: string; alt: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const circleRef = useRef<SVGCircleElement | null>(null);
@@ -22,7 +21,6 @@ function RevealMaskImage({ src, alt }: { src: string; alt: string }) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Velocidad dinámica del Hero
     const xPercent = (x / width) * 100;
     let transitionMultiplier =
       xPercent < 50 ? ((xPercent - 50) * -1) / 50 : (xPercent - 50) / 50;
@@ -32,7 +30,6 @@ function RevealMaskImage({ src, alt }: { src: string; alt: string }) {
 
     const maxRadius = Math.sqrt(width * width + height * height);
 
-    // Animación del círculo
     gsap.killTweensOf(circleRef.current);
 
     gsap.set(circleRef.current, {
@@ -46,7 +43,6 @@ function RevealMaskImage({ src, alt }: { src: string; alt: string }) {
       attr: { r: maxRadius },
     });
 
-    // Glow externo
     gsap.to(containerRef.current, {
       boxShadow: "0 0 35px rgba(255,255,255,0.28)",
       duration: 0.4,
@@ -66,7 +62,6 @@ function RevealMaskImage({ src, alt }: { src: string; alt: string }) {
       opacity: 0,
     });
 
-    // Quitar glow
     gsap.to(containerRef.current, {
       boxShadow: "0 0 0 rgba(0,0,0,0)",
       duration: 0.5,
@@ -125,7 +120,14 @@ function RevealMaskImage({ src, alt }: { src: string; alt: string }) {
         <defs>
           <mask id={`mask-${alt.replace(/\s/g, "")}`}>
             <rect width="100%" height="100%" fill="black" />
-            <circle ref={circleRef} r={0} cx={0} cy={0} fill="white" opacity={0} />
+            <circle
+              ref={circleRef}
+              r={0}
+              cx={0}
+              cy={0}
+              fill="white"
+              opacity={0}
+            />
           </mask>
         </defs>
 
@@ -141,24 +143,24 @@ function RevealMaskImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-
-
-
 export default function DifferentiatorsSection() {
   const { language } = useLanguage();
   const t = differentiatorsJson[language];
+
   const images = [img1, img2, img3];
+  // por si en algún idioma hay más ítems que imágenes
+  const items = (t.items as any[]).slice(0, images.length);
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
-  // 🎯 Animación activada SOLO cuando se ve la sección
+  // Animación activada SOLO cuando se ve la sección
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
           setVisible(true);
-          observer.disconnect(); // Se activa solo una vez
+          observer.disconnect();
         }
       },
       { threshold: 0.25 }
@@ -167,112 +169,105 @@ export default function DifferentiatorsSection() {
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
+
+    return () => observer.disconnect();
   }, []);
 
   return (
     <section
       ref={sectionRef}
-      style={{
-        width: "100%",
-        minHeight: "100vh",
-        maxWidth: "1920px",
-        margin: "0 auto",
-        background: "#fff",
-        color: "#141313",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        padding: "8rem 0",
-      }}
+      className="w-full bg-white text-[#141313] py-[8rem]"
     >
-      {/* TÍTULO */}
-      <h2
-        style={{
-          fontFamily:
-            "Montserrat, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-          fontWeight: 700,
-          fontSize: "clamp(26px, 2.6vw, 40px)",
-          lineHeight: "130%",
-          letterSpacing: "0.5px",
-          textAlign: "center",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(30px)",
-          transition: "all 0.8s ease",
-        }}
-      >
-        {t.title}
-      </h2>
+      {/* HEADER (título + subtítulo) */}
+      <div className="mx-auto w-full max-w-[1440px] px-8 lg:px-16 flex flex-col items-center">
+        <h2
+          className={`
+            font-['Montserrat']
+            font-bold
+            text-center
+            text-[26px] md:text-[30px] lg:text-[34px]
+            leading-[1.3]
+            tracking-[0.03em]
+            transition-all duration-700
+            ${
+              visible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }
+          `}
+        >
+          {t.title}
+        </h2>
 
-      {/* SUBTÍTULO */}
-      <p
-        style={{
-          fontFamily:
-            "Montserrat, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-          fontWeight: 400,
-          fontSize: "clamp(18px, 1.7vw, 32px)",
-          lineHeight: "130%",
-          textAlign: "center",
-          marginTop: "clamp(4px, 0.6vw, 8px)",
-          marginBottom: "clamp(40px, 7.135vw, 137px)",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(30px)",
-          transition: "all 0.8s ease 0.15s",
-        }}
-      >
-        {t.subtitle}
-      </p>
+        <p
+          className={`
+            mt-2
+            max-w-[720px]
+            font-['Montserrat']
+            text-[18px] md:text-[20px]
+            leading-[1.3]
+            text-center
+            transition-all duration-700 delay-150
+            ${
+              visible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }
+          `}
+        >
+          {t.subtitle}
+        </p>
+      </div>
 
       {/* CARDS */}
-<div
-  style={{
-    display: "flex",
-    flexDirection: window.innerWidth >= 1024 ? "row" : "column",
-    justifyContent: window.innerWidth >= 1024 ? "space-between" : "center",
-    alignItems: "center",
-    gap: window.innerWidth >= 1024 ? "20px" : "25px",
-    width: "100%",
-    padding: "0 clamp(20px, 4vw, 80px)",
-  }}
->
-
-        {t.items.map((item, index) => (
-          <div
-            key={item.title}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              textAlign: "center",
-              maxWidth: "573px",
-              width: "100%",
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(40px)",
-              transition: `all 0.9s ease ${0.25 + index * 0.2}s`,
-            }}
-          >
-            {/* TÍTULO */}
-            <h3
+      <div className="mt-10 mx-auto w-full max-w-[1440px] px-8 lg:px-16">
+        <div
+          className="
+            flex
+            flex-col
+            items-center
+            gap-10
+            lg:flex-row
+            lg:items-start
+            lg:justify-between
+          "
+        >
+          {items.map((item, index) => (
+            <div
+              key={`${language}-${index}`}
               style={{
-                fontFamily:
-                  "Montserrat, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-                fontWeight: 700,
-                fontSize: "clamp(12px, 1.4vw, 26px)",
-                lineHeight: "130%",
-                textAlign: "center",
-                color: "#141313",
-                marginBottom: "clamp(10px, 1vw, 20px)",
-                maxWidth: "573px",
+                opacity: visible ? 1 : 0,
+                transform: visible ? "translateY(0)" : "translateY(40px)",
+                transition: `all 0.9s ease ${0.25 + index * 0.2}s`,
               }}
+              className="
+                flex
+                w-full
+                max-w-[573px]
+                flex-col
+                items-center
+                text-center
+              "
             >
-              {item.title}
-            </h3>
+              <h3
+                className="
+                  mb-4
+                  font-['Montserrat']
+                  font-bold
+                  text-[14px] md:text-[16px] lg:text-[18px]
+                  leading-[1.3]
+                  text-center
+                  text-[#141313]
+                "
+              >
+                {item.title}
+              </h3>
 
-            {/* ⭐ AQUÍ VA LA ANIMACIÓN FINAL */}
-            <RevealMaskImage src={images[index]} alt={item.title} />
-          </div>
-
-        ))}
+              <RevealMaskImage src={images[index]} alt={item.title} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
-  );  
+  );
 }
