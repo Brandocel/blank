@@ -7,7 +7,7 @@ type Props = { delayMs?: number; onDone?: () => void };
 
 
 // Splash con animación de encuadre 100% React
-export default function Splash({ delayMs = 0, onDone }: Props) {
+export default function Splash({ onDone }: Props) {
   const [lineStep, setLineStep] = useState(0); // cuántas líneas mostrar
   const [showLogo, setShowLogo] = useState(false);
   const [showRec, setShowRec] = useState(false);

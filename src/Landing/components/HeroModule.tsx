@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { useLanguage, type Language } from "../../common/i18n/LanguageContext";
 
@@ -18,7 +18,7 @@ import oumaLogo from "../../assets/Logos/download.svg";
 import heroJson from "../../common/i18n/hero.json";
 
 const photos = [photo1, photo2, photo3, photo4real];
-// Duplicamos para cinta infinita
+// Duplicamos para cinta infinita (desktop)
 const loopPhotos = [...photos, ...photos];
 
 type BrandLogo = {
@@ -121,7 +121,7 @@ function HeroPhoto({ src, maskId }: HeroPhotoProps) {
         will-change-transform
       "
     >
-      {/* Capa base en blanco y negro */}
+      {/* Capa base en blanco y negro (solo desktop) */}
       <img
         src={src}
         alt="Hero"
@@ -130,7 +130,7 @@ function HeroPhoto({ src, maskId }: HeroPhotoProps) {
           object-cover object-center
           filter grayscale contrast-[1.25]
           transition-transform duration-700 ease-[cubic-bezier(.22,.61,.36,1)]
-          group-hover:scale-[1.06]   /* zoom suave en la imagen */
+          group-hover:scale-[1.06]
         "
       />
 
@@ -183,7 +183,19 @@ export default function HeroModule() {
   const heroTrackRef = useRef<HTMLDivElement | null>(null);
   const heroTweenRef = useRef<gsap.core.Tween | null>(null);
 
-  // Animación automática del hero (cinta infinita, suave, en contra de los logos)
+  // ---- NUEVO: estado para el slider mobile ----
+  const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
+
+  // Slider automático en mobile (una imagen a la vez, en color)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMobileIndex((prev) => (prev + 1) % photos.length);
+    }, 3500); // cada 3.5 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Animación automática del hero (desktop, cinta infinita)
   useEffect(() => {
     if (!heroTrackRef.current) return;
 
@@ -191,7 +203,6 @@ export default function HeroModule() {
       heroTrackRef.current,
       { xPercent: 0 },
       {
-        // Logos se mueven a la derecha, hero hacia la izquierda
         xPercent: -50,
         duration: 45,
         repeat: -1,
@@ -217,7 +228,7 @@ export default function HeroModule() {
   return (
     <section className="w-full bg-white text-slate-900">
       {/* COPY DEL HERO */}
-      <div className="mx-auto max-w-6xl px-4 pt-30 pb-20 text-center">
+      <div className="mx-auto max-w-6xl px-4 pb-20 text-center">
         <p
           className="
             hero-tagline
@@ -230,8 +241,63 @@ export default function HeroModule() {
         </p>
       </div>
 
-      {/* HERO FOTOS */}
-      <div className="w-full">
+      {/* ================== HERO FOTOS MOBILE (solo uno, en color) ================== */}
+      <div className="w-full md:hidden">
+        <div
+          className="
+            relative
+            w-full
+            h-[60vh]
+            max-h-[720px]
+            overflow-hidden
+            bg-black
+          "
+        >
+          {photos.map((src, idx) => (
+            <img
+              key={idx}
+              src={src}
+              alt={`Hero mobile ${idx + 1}`}
+              className={`
+                absolute inset-0
+                h-full w-full
+                object-cover object-center
+                transition-opacity duration-700 ease-[cubic-bezier(.22,.61,.36,1)]
+                ${idx === currentMobileIndex ? "opacity-100" : "opacity-0"}
+              `}
+            />
+          ))}
+
+          {/* Pequeños indicadores (puntos) */}
+          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+            {photos.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setCurrentMobileIndex(idx)}
+                className={`
+                  h-2.5 w-2.5 rounded-full
+                  border border-white/60
+                  transition-all duration-300
+                  ${
+                    idx === currentMobileIndex
+                      ? "bg-white scale-110"
+                      : "bg-white/20"
+                  }
+                `}
+                aria-label={`Ir a la foto ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          {/* Degradado superior/inferior suave (opcional) */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        </div>
+      </div>
+
+      {/* ================== HERO FOTOS DESKTOP (NO TOCADO, solo escondido en mobile) ================== */}
+      <div className="w-full hidden md:block">
         <div
           className="
             relative
