@@ -24,21 +24,6 @@ export default function ContactSection() {
   const [errors, setErrors] = useState<any>({});
   const [captchaOK, setCaptchaOK] = useState(false);
 
-  // Detect MOBILE
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkMobile =
-      window.innerWidth <= 768 ||
-      /iphone|ipad|android|mobile|touch|tablet/i.test(
-        navigator.userAgent.toLowerCase()
-      );
-    setIsMobile(checkMobile);
-  }, []);
-
-  // Detecta si pantalla es 1920×1080
-  const isDesktop1920 =
-    window.innerWidth >= 1920 && window.innerHeight >= 1080;
-
   // Validate field
   const validateField = (field: string, value: string) => {
     let error = "";
@@ -117,12 +102,10 @@ export default function ContactSection() {
 
       {/* MAIN FLEX LAYOUT */}
       <div
+        className="flex flex-col md:flex-row items-stretch"
         style={{
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          gap: isMobile ? "40px" : "140px",
+          gap: "clamp(40px, 6vw, 140px)",
           padding: "0 clamp(20px, 4vw, 80px)",
-          alignItems: "stretch",
           margin: "0 auto",
           width: "100%",
         }}
@@ -130,12 +113,10 @@ export default function ContactSection() {
         {/* FORM */}
         <form
           onSubmit={handleSubmit}
+          className="flex flex-col flex-1"
           style={{
-            flex: 1,
-            maxWidth: isDesktop1920 ? "874px" : "650px",
-            height: isDesktop1920 ? "744px" : "auto",
-            display: "flex",
-            flexDirection: "column",
+            maxWidth: "874px",
+            height: "auto",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(40px)",
             transition: "all 0.9s ease 0.2s",
@@ -143,7 +124,7 @@ export default function ContactSection() {
           }}
         >
           {/* Fila 1 */}
-          <div style={{ display: "flex", gap: "1rem", marginBottom: "1.2rem" }}>
+          <div className="flex flex-col md:flex-row gap-4 mb-5">
             <Input
               label={t.fields.firstName}
               required
@@ -161,7 +142,7 @@ export default function ContactSection() {
           </div>
 
           {/* Fila 2 */}
-          <div style={{ display: "flex", gap: "1rem", marginBottom: "1.2rem" }}>
+          <div className="flex flex-col md:flex-row gap-4 mb-5">
             <Input
               label={t.fields.email}
               required
@@ -179,7 +160,7 @@ export default function ContactSection() {
           </div>
 
           {/* Mensaje */}
-          <div style={{ marginBottom: "1.2rem" }}>
+          <div className="mb-5">
             <Input
               label={t.fields.message}
               textarea
@@ -190,22 +171,15 @@ export default function ContactSection() {
             />
           </div>
 
-{/* RECAPTCHA */}
-<div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    marginBottom: isMobile ? "15px" : "0px", // ⭐ SOLO EN MOBILE AGREGA ESPACIO
-  }}
->
-  <ReCAPTCHA
-    sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-    onChange={(token) => setCaptchaOK(!!token)}
-    onExpired={() => setCaptchaOK(false)}
-    onErrored={() => setCaptchaOK(false)}
-  />
-</div>
-
+          {/* RECAPTCHA */}
+          <div className="flex items-center mb-[15px] md:mb-0">
+            <ReCAPTCHA
+              sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+              onChange={(token) => setCaptchaOK(!!token)}
+              onExpired={() => setCaptchaOK(false)}
+              onErrored={() => setCaptchaOK(false)}
+            />
+          </div>
 
           {/* BOTÓN */}
           <button
@@ -229,12 +203,10 @@ export default function ContactSection() {
 
         {/* COLUMNA DERECHA */}
         <div
+          className="flex flex-col flex-1"
           style={{
-            flex: 1,
-            maxWidth: isDesktop1920 ? "810px" : "100%",
-            height: isDesktop1920 ? "744px" : "auto",
-            display: "flex",
-            flexDirection: "column",
+            maxWidth: "810px",
+            height: "auto",
             justifyContent: "flex-start",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(40px)",
@@ -243,17 +215,15 @@ export default function ContactSection() {
           }}
         >
           {/* DATOS */}
-<div
-  style={{
-    display: "flex",
-    flexDirection: window.innerWidth < 768 ? "row" : "row", // igual, pero controlamos gaps
-    justifyContent: "space-between",
-    gap: window.innerWidth < 768 ? "20px" : "140px", // 👈 mobile reducido
-    marginBottom: window.innerWidth < 768 ? "32px" : "53px",
-    fontFamily: "Montserrat, sans-serif",
-  }}
->
-
+          <div
+            className="
+              flex flex-col gap-5 mb-8
+              md:flex-row md:justify-between md:gap-[140px] md:mb-[53px]
+            "
+            style={{
+              fontFamily: "Montserrat, sans-serif",
+            }}
+          >
             <div>
               <div
                 style={{
@@ -297,17 +267,17 @@ export default function ContactSection() {
             </div>
           </div>
 
-          {/* IMG — **SE MANTIENE EXACTA A TU DISEÑO** */}
+          {/* IMG - oculta en mobile, visible en md+ */}
           <img
             src={contactImg}
             alt="Contact"
+            className="hidden md:block"
             style={{
               width: "100%",
-              height: isDesktop1920 ? "633px" : "auto",
               maxWidth: "810px",
+              height: "auto",
               objectFit: "cover",
               aspectRatio: "810 / 633",
-              display: window.innerWidth < 768 ? "none" : "block", // 👈 ocultar solo mobile
               marginTop: "7px",
             }}
           />
@@ -321,22 +291,21 @@ export default function ContactSection() {
 function Input({ label, required, textarea, value, onChange, error }: any) {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-<label
-  style={{
-    fontFamily: "Montserrat, sans-serif",
-    fontWeight: 700,
-    fontSize: "clamp(16px, 2vw, 24px)",
-    marginBottom: "8px",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px", // pequeño espacio elegante
-    whiteSpace: "nowrap", // evita que el * se vaya a otra línea
-  }}
->
-  <span>{label}</span>
-  {required && <span style={{ color: "red" }}>*</span>}
-</label>
-
+      <label
+        style={{
+          fontFamily: "Montserrat, sans-serif",
+          fontWeight: 700,
+          fontSize: "clamp(16px, 2vw, 24px)",
+          marginBottom: "8px",
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <span>{label}</span>
+        {required && <span style={{ color: "red" }}>*</span>}
+      </label>
 
       {textarea ? (
         <textarea

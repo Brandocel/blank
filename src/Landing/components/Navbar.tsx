@@ -4,8 +4,6 @@ import {
   FaInstagram,
   FaFacebookF,
   FaLinkedin,
-  FaBars,
-  FaTimes,
 } from "react-icons/fa";
 import navarData from "../../common/i18n/navar.json";
 import { useLanguage } from "../../common/i18n/LanguageContext";
@@ -79,7 +77,7 @@ const Navbar: React.FC = () => {
       <div className="w-full max-w-[1920px] flex items-center justify-between mx-auto px-[clamp(10px,2vw,32px)] min-h-[clamp(56px,6vw,172px)] gap-[clamp(8px,2vw,32px)]">
         {/* Logo */}
         <div className="flex items-center">
-          <img src={Logo} alt="Blank Logo" style={{ height: 38 }} />
+          <img src={Logo} alt="Blank Logo" className="h-[28px] md:h-[38px]" />
         </div>
 
         {/* Nav Links (desktop) */}
@@ -189,17 +187,38 @@ const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Botón menú (mobile) */}
+        {/* Botón menú (mobile) - solo muestra hamburguesa */}
         <button
           onClick={toggleMobileMenu}
-          aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-          className="flex md:hidden items-center justify-center p-1 bg-none border-none cursor-pointer"
+          aria-label="Abrir menú"
+          className={`${isMobileMenuOpen ? 'hidden' : 'flex'} md:hidden flex-col items-center justify-center bg-none border-none cursor-pointer p-2`}
         >
-          {isMobileMenuOpen ? (
-            <FaTimes size={24} color="#111" />
-          ) : (
-            <FaBars size={24} color="#111" />
-          )}
+          <span
+            style={{
+              display: 'block',
+              width: 24,
+              height: 1,
+              background: '#222',
+              marginBottom: 5,
+            }}
+          />
+          <span
+            style={{
+              display: 'block',
+              width: 24,
+              height: 1,
+              background: '#222',
+              marginBottom: 5,
+            }}
+          />
+          <span
+            style={{
+              display: 'block',
+              width: 24,
+              height: 1,
+              background: '#222',
+            }}
+          />
         </button>
       </div>
 
@@ -214,11 +233,38 @@ const Navbar: React.FC = () => {
         <div
           onClick={(e) => e.stopPropagation()}
           className={`m-[12px] mr-[clamp(10px,4vw,24px)] ml-auto w-[min(320px,80vw)] bg-white shadow-[-4px_0_12px_rgba(0,0,0,0.15)] 
-          px-[clamp(10px,4vw,24px)] py-4 flex flex-col gap-3 rounded-[12px] max-h-[calc(100vh-120px)] overflow-y-auto transform transition-transform duration-200 ease-out
+          py-4 flex flex-col justify-center items-center max-h-[calc(100vh-360px)] overflow-y-auto transform transition-transform duration-200 ease-out relative
           ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}
         >
+          {/* Botón cerrar X dentro del drawer */}
+          <button
+            onClick={toggleMobileMenu}
+            aria-label="Cerrar menú"
+            className="absolute top-4 right-4 flex flex-col items-center justify-center bg-none border-none cursor-pointer p-2"
+          >
+            <span
+              style={{
+                display: 'block',
+                width: 20,
+                height: 1,
+                background: '#222',
+                transform: 'rotate(45deg)',
+                position: 'absolute',
+              }}
+            />
+            <span
+              style={{
+                display: 'block',
+                width: 20,
+                height: 1,
+                background: '#222',
+                transform: 'rotate(-45deg)',
+                position: 'absolute',
+              }}
+            />
+          </button>
           {/* Links */}
-          <div className="flex flex-col gap-[10px]">
+          <div className="flex flex-col gap-[30px]">
             {navLinksKeys.map((link) => {
               if (link.key === "careers") {
                 const isActive = location.pathname === link.href;
@@ -259,7 +305,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Redes */}
-          <div className="flex gap-4 mt-2 items-center">
+          <div className="flex gap-4 mt-10 items-center">
             {socialLinks.map((s) => (
               <a
                 key={s.key}
@@ -275,7 +321,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Idioma */}
-          <div className="mt-2 flex items-center gap-[6px]">
+          <div className=" flex items-center gap-[6px]">
             <button
               onClick={() => setLanguage("es")}
               className="bg-none border-none px-0 mr-1 font-[Montserrat,sans-serif]"
