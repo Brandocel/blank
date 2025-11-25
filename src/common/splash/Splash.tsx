@@ -127,7 +127,6 @@ export default function Splash({ onDone }: Props) {
         onDone?.();
       }
     };
-
     run();
     return () => {
       cancelled = true;
@@ -210,3 +209,6 @@ export default function Splash({ onDone }: Props) {
     </div>
   );
 }
+
+
+  
