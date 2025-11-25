@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Logo from "../../assets/Navar/Logo.svg";
-import {
-  FaInstagram,
-  FaFacebookF,
-  FaLinkedin,
-} from "react-icons/fa";
+import { FaInstagram, FaFacebookF, FaLinkedin } from "react-icons/fa";
 import navarData from "../../common/i18n/navar.json";
 import { useLanguage } from "../../common/i18n/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
@@ -47,14 +43,16 @@ const Navbar: React.FC = () => {
   const location = useLocation();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeKey, setActiveKey] = useState<string>("inicio");
 
-  const handleAnchorClick = (href: string) => {
+  const handleAnchorClick = (href: string, key: string) => {
     const el = document.getElementById(href.replace("#", ""));
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
     } else {
       window.location.href = "/" + href;
     }
+    setActiveKey(key);
     setIsMobileMenuOpen(false);
   };
 
@@ -84,11 +82,13 @@ const Navbar: React.FC = () => {
         <div className="hidden md:flex items-center gap-[clamp(8px,2vw,32px)]">
           {navLinksKeys.map((link) => {
             if (link.key === "careers") {
-              const isActive = location.pathname === link.href;
+              const isRouteActive = location.pathname === link.href;
+              const isActive = activeKey === link.key || isRouteActive;
               return (
                 <Link
                   key={link.key}
                   to={link.href}
+                  onClick={() => setActiveKey(link.key)}
                   className="no-underline font-[Montserrat,sans-serif]"
                   style={{
                     color: "#222",
@@ -98,12 +98,14 @@ const Navbar: React.FC = () => {
                     paddingBottom: isActive ? 2 : 0,
                     fontWeight: 400,
                     transition: "border-bottom 0.2s",
+                    display: "inline-block",
                   }}
                 >
                   {t[link.key as keyof typeof t]}
                 </Link>
               );
             } else {
+              const isActive = activeKey === link.key;
               return (
                 <a
                   key={link.key}
@@ -113,13 +115,15 @@ const Navbar: React.FC = () => {
                     color: "#222",
                     fontSize: "clamp(14px,1vw,20px)",
                     letterSpacing: 0.5,
-                    borderBottom: "none",
+                    borderBottom: isActive ? "2px solid #222" : "none",
+                    paddingBottom: isActive ? 2 : 0,
                     fontWeight: 400,
                     transition: "border-bottom 0.2s",
+                    display: "inline-block",
                   }}
                   onClick={(e) => {
                     e.preventDefault();
-                    handleAnchorClick(link.href);
+                    handleAnchorClick(link.href, link.key);
                   }}
                 >
                   {t[link.key as keyof typeof t]}
@@ -187,99 +191,82 @@ const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Botón menú (mobile) - solo muestra hamburguesa */}
+        {/* Botón menú (mobile) - hamburguesa/X */}
         <button
           onClick={toggleMobileMenu}
-          aria-label="Abrir menú"
-          className={`${isMobileMenuOpen ? 'hidden' : 'flex'} md:hidden flex-col items-center justify-center bg-none border-none cursor-pointer p-2`}
+          aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+          className="md:hidden flex flex-col items-center justify-center bg-transparent border-none cursor-pointer p-2 z-[310]"
         >
           <span
-            style={{
-              display: 'block',
-              width: 24,
-              height: 1,
-              background: '#222',
-              marginBottom: 5,
-            }}
+            className={`
+              block w-6 h-[2px] bg-[#222] rounded-sm
+              transition-transform duration-300 ease-out
+              ${isMobileMenuOpen ? "translate-y-[6px] rotate-45" : ""}
+            `}
           />
           <span
-            style={{
-              display: 'block',
-              width: 24,
-              height: 1,
-              background: '#222',
-              marginBottom: 5,
-            }}
+            className={`
+              block w-6 h-[2px] bg-[#222] rounded-sm my-[4px]
+              transition-opacity duration-300 ease-out
+              ${isMobileMenuOpen ? "opacity-0" : "opacity-100"}
+            `}
           />
           <span
-            style={{
-              display: 'block',
-              width: 24,
-              height: 1,
-              background: '#222',
-            }}
+            className={`
+              block w-6 h-[2px] bg-[#222] rounded-sm
+              transition-transform duration-300 ease-out
+              ${isMobileMenuOpen ? "-translate-y-[6px] -rotate-45" : ""}
+            `}
           />
         </button>
       </div>
 
-      {/* Menú móvil tipo drawer lateral con animación (solo mobile) */}
+      {/* Menú móvil lateral */}
       <div
         onClick={() => isMobileMenuOpen && toggleMobileMenu()}
-        className={`fixed md:hidden left-0 right-0 bottom-0 bg-[rgba(0,0,0,0.25)] z-[250] flex justify-end transition-opacity duration-200 ease-out
-        top-[clamp(56px,6vw,172px)]
-        ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        className={`
+          fixed md:hidden left-0 right-0 bottom-0 
+          bg-[rgba(0,0,0,0.25)] z-[250] flex justify-end
+          transition-opacity duration-300 ease-out
+          top-[clamp(56px,6vw,172px)]
+          ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+        `}
       >
-        {/* Panel del menú */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`m-[12px] mr-[clamp(10px,4vw,24px)] ml-auto w-[min(320px,80vw)] bg-white shadow-[-4px_0_12px_rgba(0,0,0,0.15)] 
-          py-4 flex flex-col justify-center items-center max-h-[calc(100vh-360px)] overflow-y-auto transform transition-transform duration-200 ease-out relative
-          ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+          className={`
+            m-0 ml-auto w-[min(320px,80vw)] bg-white 
+            shadow-[-4px_0_12px_rgba(0,0,0,0.15)]
+            py-6 px-6 flex flex-col justify-between items-center
+            h-full transform transition-transform duration-300 ease-out relative
+            ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
+          `}
         >
-          {/* Botón cerrar X dentro del drawer */}
-          <button
-            onClick={toggleMobileMenu}
-            aria-label="Cerrar menú"
-            className="absolute top-4 right-4 flex flex-col items-center justify-center bg-none border-none cursor-pointer p-2"
-          >
-            <span
-              style={{
-                display: 'block',
-                width: 20,
-                height: 1,
-                background: '#222',
-                transform: 'rotate(45deg)',
-                position: 'absolute',
-              }}
-            />
-            <span
-              style={{
-                display: 'block',
-                width: 20,
-                height: 1,
-                background: '#222',
-                transform: 'rotate(-45deg)',
-                position: 'absolute',
-              }}
-            />
-          </button>
-          {/* Links */}
-          <div className="flex flex-col gap-[30px]">
+          {/* Links centrados */}
+          <div className="flex flex-col gap-[30px] w-full mt-10 items-center">
             {navLinksKeys.map((link) => {
+              const isActive =
+                activeKey === link.key ||
+                (link.key === "careers" && location.pathname === link.href);
+
               if (link.key === "careers") {
-                const isActive = location.pathname === link.href;
                 return (
                   <Link
                     key={link.key}
                     to={link.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="no-underline font-[Montserrat,sans-serif]"
+                    onClick={() => {
+                      setActiveKey(link.key);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="no-underline font-[Montserrat,sans-serif] text-center"
                     style={{
                       color: "#222",
-                      fontSize: 15,
+                      fontSize: 16,
+                      letterSpacing: 0.5,
                       borderBottom: isActive ? "2px solid #222" : "none",
-                      paddingBottom: 4,
+                      paddingBottom: isActive ? 4 : 0,
                       fontWeight: 400,
+                      display: "inline-block", // subrayado solo del texto
                     }}
                   >
                     {t[link.key as keyof typeof t]}
@@ -289,12 +276,16 @@ const Navbar: React.FC = () => {
                 return (
                   <button
                     key={link.key}
-                    onClick={() => handleAnchorClick(link.href)}
-                    className="text-left bg-transparent border-none p-0 cursor-pointer font-[Montserrat,sans-serif]"
+                    onClick={() => handleAnchorClick(link.href, link.key)}
+                    className="bg-transparent border-none p-0 cursor-pointer font-[Montserrat,sans-serif] text-center"
                     style={{
                       color: "#222",
-                      fontSize: 15,
+                      fontSize: 16,
+                      letterSpacing: 0.5,
+                      borderBottom: isActive ? "2px solid #222" : "none",
+                      paddingBottom: isActive ? 4 : 0,
                       fontWeight: 400,
+                      display: "inline-block", // subrayado solo del texto
                     }}
                   >
                     {t[link.key as keyof typeof t]}
@@ -304,55 +295,56 @@ const Navbar: React.FC = () => {
             })}
           </div>
 
-          {/* Redes */}
-          <div className="flex gap-4 mt-10 items-center">
-            {socialLinks.map((s) => (
-              <a
-                key={s.key}
-                href={s.href}
-                aria-label={t[s.key as keyof typeof t]}
-                className="flex items-center justify-center text-[#111]"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {iconSvg[s.icon as keyof typeof iconSvg]}
-              </a>
-            ))}
-          </div>
+          {/* Redes + idioma centrados abajo */}
+          <div className="w-full flex flex-col items-center gap-6 mb-4 mt-8">
+            <div className="flex gap-4 items-center">
+              {socialLinks.map((s) => (
+                <a
+                  key={s.key}
+                  href={s.href}
+                  aria-label={t[s.key as keyof typeof t]}
+                  className="flex items-center justify-center text-[#111]"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {iconSvg[s.icon as keyof typeof iconSvg]}
+                </a>
+              ))}
+            </div>
 
-          {/* Idioma */}
-          <div className=" flex items-center gap-[6px]">
-            <button
-              onClick={() => setLanguage("es")}
-              className="bg-none border-none px-0 mr-1 font-[Montserrat,sans-serif]"
-              style={{
-                fontSize: 14,
-                color: language === "es" ? "#222" : "#888",
-                fontWeight: 400,
-                letterSpacing: 0.1,
-                borderBottom: language === "es" ? "2px solid #222" : "none",
-                cursor: "pointer",
-              }}
-              aria-label="Cambiar a español"
-            >
-              Español
-            </button>
-            <span className="text-[#888] text-[14px]">/</span>
-            <button
-              onClick={() => setLanguage("en")}
-              className="bg-none border-none px-0 ml-1 font-[Montserrat,sans-serif]"
-              style={{
-                fontSize: 14,
-                color: language === "en" ? "#222" : "#888",
-                fontWeight: 400,
-                letterSpacing: 0.1,
-                borderBottom: language === "en" ? "2px solid #222" : "none",
-                cursor: "pointer",
-              }}
-              aria-label="Switch to English"
-            >
-              English
-            </button>
+            <div className="flex items-center gap-[6px]">
+              <button
+                onClick={() => setLanguage("es")}
+                className="bg-none border-none px-0 mr-1 font-[Montserrat,sans-serif]"
+                style={{
+                  fontSize: 14,
+                  color: language === "es" ? "#222" : "#888",
+                  fontWeight: 400,
+                  letterSpacing: 0.1,
+                  borderBottom: language === "es" ? "2px solid #222" : "none",
+                  cursor: "pointer",
+                }}
+                aria-label="Cambiar a español"
+              >
+                Español
+              </button>
+              <span className="text-[#888] text-[14px]">/</span>
+              <button
+                onClick={() => setLanguage("en")}
+                className="bg-none border-none px-0 ml-1 font-[Montserrat,sans-serif]"
+                style={{
+                  fontSize: 14,
+                  color: language === "en" ? "#222" : "#888",
+                  fontWeight: 400,
+                  letterSpacing: 0.1,
+                  borderBottom: language === "en" ? "2px solid #222" : "none",
+                  cursor: "pointer",
+                }}
+                aria-label="Switch to English"
+              >
+                English
+              </button>
+            </div>
           </div>
         </div>
       </div>
