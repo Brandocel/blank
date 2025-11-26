@@ -24,8 +24,8 @@ const Footer: React.FC = () => {
         className={`
           w-full mx-auto bg-[#111] text-white 
           flex flex-col items-center 
-          md:flex-row md:justify-between md:items-start
-          py-[60px]                       /* móvil: 60px arriba y abajo */
+          md:grid md:grid-cols-[1fr_auto_1fr] md:items-start md:gap-[clamp(24px,6vw,120px)]
+          py:[60px]                       /* móvil: 60px arriba y abajo */
           md:pt-[clamp(32px,4vw,120px)]   /* desktop: tus valores clamp */
           md:pb-[clamp(32px,4vw,120px)]
         `}
@@ -47,6 +47,10 @@ const Footer: React.FC = () => {
             md:items-start md:text-left
           "
           style={{ gap: "clamp(16px, 2vw, 29px)" }}
+          
+          /* grid: columna izquierda */
+          
+          
         >
           <img
             src={Logo}
@@ -85,7 +89,9 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Columna centro: botón y contacto */}
-        <div className="flex flex-col items-center flex-1 mt-8 md:mt-0">
+           <div className="flex flex-col items-center mt-8 md:mt-0 md:min-w-[320px] md:max-w-[560px] md:mx-auto"
+             /* grid: columna central auto, queda centrada por el template */
+           >
           <button
             style={{
               background: "#fff",
@@ -93,15 +99,15 @@ const Footer: React.FC = () => {
               fontWeight: 700,
               fontFamily: "Montserrat, sans-serif",
               fontSize: "clamp(14px, 1vw, 24px)",
-              padding: "0.5rem 2.5rem",
+              padding: "6px 14px",
               border: "none",
               marginBottom: 12,
               marginTop: 8,
               cursor: "pointer",
               letterSpacing: 0.2,
               textDecoration: "underline",
-              width: "100%",
-              maxWidth: 480,
+              width: "auto",
+              display: "inline-block",
             }}
           >
             {t.button}
@@ -128,6 +134,9 @@ const Footer: React.FC = () => {
             md:items-end md:text-right
           "
           style={{ gap: 0 }}
+          
+          /* grid: columna derecha */
+          
         >
           {footerLinksKeys.map((link) => (
             <Link
