@@ -13,11 +13,11 @@ const DEV_MODE = false;
 
 // 📐 Tamaño del logo
 // 👉 Ajusta SOLO estos 4 valores para controlar el tamaño del logo
-const LOGO_WIDTH_DESKTOP_VW = 720;      // ancho en vw para desktop
-const LOGO_WIDTH_DESKTOP_MAX_PX = 1200; // límite máximo en px para desktop
+const LOGO_WIDTH_DESKTOP_VW = 360;      // ancho en vw para desktop
+const LOGO_WIDTH_DESKTOP_MAX_PX = 600; // límite máximo en px para desktop
 
-const LOGO_WIDTH_MOBILE_VW = 55;        // ancho en vw para móvil
-const LOGO_WIDTH_MOBILE_MAX_PX = 300;   // límite máximo en px para móvil
+const LOGO_WIDTH_MOBILE_VW = 27.5;        // ancho en vw para móvil
+const LOGO_WIDTH_MOBILE_MAX_PX = 150;   // límite máximo en px para móvil
 
 // 🎚️ Ajustes de FRANJAS DESKTOP (tal como los tienes ahora)
 const BAR_WIDTH_DESKTOP_VW = 200;          // largo de cada franja (en vw)
@@ -165,7 +165,7 @@ export default function Splash({ onDone }: Props) {
             transform: translate(-50%, -50%) scale(1, 1);
           }
           100% {
-            transform: translate(-50%, -50%) scale(12, 4.3);
+            transform: translate(-50%, -50%) scale(24, 8.6);
           }
         }
 
