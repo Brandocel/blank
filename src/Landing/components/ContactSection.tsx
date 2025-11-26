@@ -86,7 +86,7 @@ export default function ContactSection() {
         style={{
           fontFamily: "Montserrat, sans-serif",
           fontWeight: 700,
-          fontSize: "clamp(26px, 3vw, 40px)",
+          fontSize: "clamp(26px, 2.083vw, 40px)",
           lineHeight: "49px",
           color: "#000",
           textAlign: "left",
@@ -190,7 +190,7 @@ export default function ContactSection() {
               color: "#fff",
               padding: "14px 0",
               fontFamily: "Montserrat",
-              fontSize: "16px",
+              fontSize: "clamp(12px, 0.833vw, 16px)",
               fontWeight: 600,
               border: "none",
               cursor: isFormValid ? "pointer" : "not-allowed",
@@ -216,19 +216,17 @@ export default function ContactSection() {
         >
           {/* DATOS */}
           <div
-            className="
-              flex flex-col gap-5 mb-8
-              md:flex-row md:justify-between md:gap-[140px] md:mb-[53px]
-            "
+            className="flex flex-col mb-8 md:flex-row md:mb-[53px]"
             style={{
               fontFamily: "Montserrat, sans-serif",
+              gap: "clamp(20px, 7.292vw, 140px)",
             }}
           >
             <div>
               <div
                 style={{
                   fontWeight: 700,
-                  fontSize: "clamp(18px, 2vw, 24px)",
+                  fontSize: "clamp(18px, 1.25vw, 24px)",
                   lineHeight: "29px",
                 }}
               >
@@ -237,7 +235,7 @@ export default function ContactSection() {
               <div
                 style={{
                   fontWeight: 400,
-                  fontSize: "clamp(16px, 1.8vw, 20px)",
+                  fontSize: "clamp(14px, 1.042vw, 20px)",
                   lineHeight: "24px",
                 }}
               >
@@ -249,7 +247,7 @@ export default function ContactSection() {
               <div
                 style={{
                   fontWeight: 700,
-                  fontSize: "clamp(18px, 2vw, 24px)",
+                  fontSize: "clamp(18px, 1.25vw, 24px)",
                   lineHeight: "29px",
                 }}
               >
@@ -258,7 +256,7 @@ export default function ContactSection() {
               <div
                 style={{
                   fontWeight: 400,
-                  fontSize: "clamp(16px, 1.8vw, 20px)",
+                  fontSize: "clamp(14px, 1.042vw, 20px)",
                   lineHeight: "24px",
                 }}
               >
@@ -295,7 +293,7 @@ function Input({ label, required, textarea, value, onChange, error }: any) {
         style={{
           fontFamily: "Montserrat, sans-serif",
           fontWeight: 700,
-          fontSize: "clamp(16px, 2vw, 24px)",
+          fontSize: "clamp(16px, 1.25vw, 24px)",
           marginBottom: "8px",
           display: "flex",
           alignItems: "center",
@@ -317,7 +315,7 @@ function Input({ label, required, textarea, value, onChange, error }: any) {
             border: "2px solid #ccc",
             padding: "clamp(10px, 0.8vw, 14px)",
             fontFamily: "Montserrat, sans-serif",
-            fontSize: "clamp(14px, 1.3vw, 18px)",
+            fontSize: "clamp(13px, 0.938vw, 18px)",
             lineHeight: "24px",
             resize: "none",
             outline: "none",
@@ -334,7 +332,7 @@ function Input({ label, required, textarea, value, onChange, error }: any) {
             border: "2px solid #ccc",
             padding: "clamp(10px, 0.8vw, 14px)",
             fontFamily: "Montserrat, sans-serif",
-            fontSize: "clamp(14px, 1.3vw, 18px)",
+            fontSize: "clamp(13px, 0.938vw, 18px)",
             outline: "none",
           }}
         />
