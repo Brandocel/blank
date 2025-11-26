@@ -13,7 +13,6 @@ function App() {
       {/* 👇 El Splash solo es una capa ENCIMA mientras showSplash sea true */}
       {showSplash && (
         <Splash
-          delayMs={500}
           onDone={() => setShowSplash(false)}
         />
       )}
