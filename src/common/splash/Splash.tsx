@@ -1,214 +1,190 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import LogoSvgRaw from "../../assets/Footer/Blank_Logo.svg?raw";
 
-type Props = { delayMs?: number; onDone?: () => void };
+type Props = { onDone?: () => void };
 
-// Splash con animación de encuadre 100% React + responsive con Tailwind
+// 🔧 MODO CALIBRACIÓN
+const DEV_MODE = false;
+
+// 🎚️ AJUSTES DE LAS FRANJAS (ANCHO)
+const BAR_WIDTH_VW = 200; // largo de cada franja (en vw)
+
+// 🎚️ ALTURA INDIVIDUAL
+const BAR_THICKNESS_TOP_VH = 10.1;     // grosor franja superior
+const BAR_THICKNESS_CENTER_VH = 9; // grosor franja central
+const BAR_THICKNESS_BOTTOM_VH = 10;  // grosor franja inferior
+
+// posición vertical (basado en 100% del alto de la pantalla)
+const CENTER_OFFSET_VH = -6; // desplaza la franja central respecto a 50vh (+ baja, - sube)
+const GAP_TOP_VH = 16;       // distancia desde la franja central hacia ARRIBA
+const GAP_BOTTOM_VH = 18.4;      // distancia desde la franja central hacia ABAJO
+
+// ⏱ tiempos
+const ZOOM_STRETCH_DURATION = 1800;
+const HOLD_AT_MAX = 600;
+const LINES_DROP_DURATION = 700;
+
 export default function Splash({ onDone }: Props) {
-  const [lineStep, setLineStep] = useState(0);
-  const [showLogo, setShowLogo] = useState(false);
-  const [showRec, setShowRec] = useState(false);
   const [visible, setVisible] = useState(true);
-  const [phase, setPhase] = useState<"frame" | "logo" | "done">("frame");
-
-  // Tamaños base del frame (solo para el viewBox)
-  const frameW = 460;
-  const frameH = 176;
-  const len = 48;
-
-  const lines = [
-    // Esquina superior izquierda
-    { x1: 0, y1: 0, x2: len, y2: 0 },
-    { x1: 0, y1: 0, x2: 0, y2: len },
-    // Esquina superior derecha
-    { x1: frameW, y1: 0, x2: frameW - len, y2: 0 },
-    { x1: frameW, y1: 0, x2: frameW, y2: len },
-    // Esquina inferior izquierda
-    { x1: 0, y1: frameH, x2: len, y2: frameH },
-    { x1: 0, y1: frameH, x2: 0, y2: frameH - len },
-    // Esquina inferior derecha
-    { x1: frameW, y1: frameH, x2: frameW - len, y2: frameH },
-    { x1: frameW, y1: frameH, x2: frameW, y2: frameH - len },
-  ];
-
-  // Centramos el logo dentro del frame usando porcentajes
-  const logoWidthPct = 60;        // el logo ocupa el 60% del ancho del frame
-  const logoHeightPct = 40;       // y ~40% del alto
-  const logoOffsetXPct = (100 - logoWidthPct) / 2; // centrado horizontal
-  const logoOffsetYPct = (100 - logoHeightPct) / 2; // centrado vertical
-
-  // Animación secuencial de líneas
-  useEffect(() => {
-    let timeout: any;
-    if (phase === "frame" && lineStep < lines.length) {
-      timeout = setTimeout(() => setLineStep((s) => s + 1), 90);
-    } else if (phase === "frame" && lineStep === lines.length) {
-      setTimeout(() => setShowRec(true), 120);
-      setTimeout(() => setShowLogo(true), 420);
-      setTimeout(() => setPhase("logo"), 950);
-    }
-    return () => clearTimeout(timeout);
-  }, [phase, lineStep, lines.length]);
-
-  // Animación de viaje al header
-  const logoWrapRef = useRef<HTMLDivElement>(null);
+  const [showLines, setShowLines] = useState(false);
+  const [dropLines, setDropLines] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    if (phase !== "logo") return;
-    let cancelled = false;
+    const t1 = setTimeout(
+      () => setShowLines(true),
+      ZOOM_STRETCH_DURATION - 200
+    );
 
-    const run = async () => {
-      await new Promise((r) => setTimeout(r, 10));
+    if (!DEV_MODE) {
+      const t2 = setTimeout(
+        () => setDropLines(true),
+        ZOOM_STRETCH_DURATION + HOLD_AT_MAX
+      );
 
-      const wrap = logoWrapRef.current;
-      if (!wrap) return;
+      const t3 = setTimeout(
+        () => setFadeOut(true),
+        ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION - 200
+      );
 
-      const svg = wrap.querySelector("svg");
-      if (!svg) return;
-
-      const target = document.getElementById("header-logo-slot");
-      if (target) {
-        const srcRect = svg.getBoundingClientRect();
-        const dstRect = target.getBoundingClientRect();
-
-        const srcCx = srcRect.left + srcRect.width / 2;
-        const srcCy = srcRect.top + srcRect.height / 2;
-        const dstCx = dstRect.left + dstRect.width / 2;
-        const dstCy = dstRect.top + dstRect.height / 2;
-
-        const dx = dstCx - srcCx;
-        const dy = dstCy - srcCy;
-        const scale = dstRect.height / srcRect.height;
-
-        const travel = wrap
-          .animate(
-            [
-              { transform: "translate(0px,0px) scale(1)" },
-              { transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
-            ],
-            {
-              duration: 650,
-              easing: "cubic-bezier(.2,.7,0,1)",
-              fill: "forwards",
-            }
-          )
-          .finished.catch(() => {});
-
-        const backdrop = wrap.closest(
-          ".splash-backdrop"
-        ) as HTMLDivElement | null;
-
-        if (backdrop) {
-          backdrop
-            .animate(
-              [
-                { backgroundColor: "rgba(0,0,0,1)" },
-                { backgroundColor: "rgba(0,0,0,0)" },
-              ],
-              {
-                duration: 550,
-                easing: "linear",
-                fill: "forwards",
-                delay: 150,
-              }
-            )
-            .finished.catch(() => {});
-        }
-
-        await travel;
-      }
-
-      const headerSlot = document.getElementById("header-logo-slot");
-      if (headerSlot) headerSlot.style.opacity = "1";
-
-      if (!cancelled) {
+      const t4 = setTimeout(() => {
         setVisible(false);
-        setPhase("done");
         onDone?.();
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [phase, onDone]);
+      }, ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION + 600);
 
-  if (!visible || phase === "done") return null;
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+        clearTimeout(t4);
+      };
+    }
+
+    // DEV_MODE: solo zoom + barras estáticas
+    return () => {
+      clearTimeout(t1);
+    };
+  }, [onDone]);
+
+  if (!visible) return null;
 
   return (
     <div
-      className="splash-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-black px-4"
+      className="fixed inset-0 z-[9999] overflow-hidden"
+      style={{
+        background: "#000",
+        opacity: fadeOut ? 0 : 1,
+        transition: DEV_MODE ? "none" : "opacity 600ms ease",
+      }}
       aria-hidden
     >
-      {/* Contenedor responsivo: en móvil NO se corta nada */}
-      <div className="w-full max-w-[420px] sm:max-w-[520px]">
-        <div
-          ref={logoWrapRef}
-          className="relative w-full aspect-[460/176] flex items-center justify-center will-change-transform pointer-events-none select-none"
-          style={{
-            filter: "drop-shadow(0 0 16px rgba(255,255,255,.12))",
-          }}
-        >
-          {/* Frame de cámara */}
-          <svg
-            width="100%"
-            height="100%"
-            viewBox={`0 0 ${frameW} ${frameH}`}
-            className="absolute inset-0 z-[2] pointer-events-none"
-          >
-            {lines.slice(0, lineStep).map((l, i) => (
-              <line
-                key={i}
-                x1={l.x1}
-                y1={l.y1}
-                x2={l.x2}
-                y2={l.y2}
-                stroke="#fff"
-                strokeWidth={3.5}
-                strokeLinecap="butt"
-                style={{
-                  opacity: 1,
-                  transition: "all 0.3s cubic-bezier(.7,0,.3,1)",
-                }}
-              />
-            ))}
+      <style>{`
+        @keyframes splash-zoom-stretch {
+          0% {
+            transform: translate(-50%, -50%) scale(1, 1);
+          }
+          35% {
+            transform: translate(-50%, -50%) scale(3.2, 3.2);
+          }
+          60% {
+            transform: translate(-50%, -50%) scale(6.2, 4.6);
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(12, 4.3);
+          }
+        }
 
-            {showRec && (
-              <circle
-                cx={frameW - 28}
-                cy={28}
-                r={11}
-                fill="#e53935"
-                stroke="#fff"
-                strokeWidth={2.5}
-                style={{
-                  filter: "drop-shadow(0 0 8px #e53935cc)",
-                  transition: "opacity 0.3s cubic-bezier(.7,0,.3,1)",
-                }}
-              />
-            )}
-          </svg>
+        /* 👇 siempre respetamos el -50% en X, y solo movemos Y */
+        @keyframes splash-line-drop {
+          0%   { transform: translate(-50%, 0); }
+          100% { transform: translate(-50%, 110vh); }
+        }
+      `}</style>
 
-          {/* Logo centrado dentro del frame */}
-          <div
-            className="flex items-center justify-center"
-            style={{
-              position: "absolute",
-              left: `${logoOffsetXPct}%`,
-              top: `${logoOffsetYPct}%`,
-              width: `${logoWidthPct}%`,
-              height: `${logoHeightPct}%`,
-              opacity: showLogo ? 1 : 0,
-              transition: "opacity 0.4s cubic-bezier(.7,0,.3,1)",
-              zIndex: 3,
-            }}
-            dangerouslySetInnerHTML={{ __html: LogoSvgRaw }}
-          />
-        </div>
+      {/* LOGO: zoom + stretch */}
+      <div
+        className="absolute left-1/2 top-1/2 select-none pointer-events-none"
+        style={{
+          width: "min(72vw, 660px)",
+          transform: "translate(-50%, -50%) scale(1)",
+          transformOrigin: "78% 57%", // apunta a la "a"
+          filter: "drop-shadow(0 0 10px rgba(255,255,255,.15))",
+          animation: `splash-zoom-stretch ${ZOOM_STRETCH_DURATION}ms linear forwards`,
+          opacity: DEV_MODE ? 1 : showLines ? 0 : 1,
+          transition: DEV_MODE ? "none" : "opacity 200ms ease",
+        }}
+        dangerouslySetInnerHTML={{ __html: LogoSvgRaw }}
+      />
+
+      {/* FRANJAS: el contenedor SIEMPRE usa el 100% de alto (inset-0) */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          opacity: showLines ? 1 : 0,
+          transition: "none",
+        }}
+      >
+        {(() => {
+          const centerY = 50 + CENTER_OFFSET_VH; // centro en vh
+          const topCenter = centerY - GAP_TOP_VH;
+          const bottomCenter = centerY + GAP_BOTTOM_VH;
+          const left = 50;
+
+          const baseBarStyle = (
+            center: number,
+            thicknessVH: number,
+            delayMs: number
+          ) => ({
+            position: "absolute" as const,
+            width: `${BAR_WIDTH_VW}vw`,
+            left: `${left}%`,
+            // colocamos TOP como centro - mitad del grosor
+            top: `${center - thicknessVH / 2}vh`,
+            height: `${thicknessVH}vh`,
+            transform: "translate(-50%, 0)",
+            background: DEV_MODE
+              ? "rgba(255, 0, 0, 0.45)" // 🔴 rojo transparente en DEV
+              : "#fff", // blanco en modo normal
+            borderRadius: "999px",
+            boxShadow: DEV_MODE
+              ? "0 0 0 rgba(0,0,0,0.0)" // sin sombra en dev para ver el borde real
+              : "0 0 12px rgba(0,0,0,0.6)",
+            animation:
+              !DEV_MODE && dropLines
+                ? `splash-line-drop ${LINES_DROP_DURATION}ms cubic-bezier(.3,.7,0,1) ${delayMs}ms forwards`
+                : "none",
+          });
+
+          return (
+            <>
+              {/* barra superior */}
+              <div
+                style={baseBarStyle(
+                  topCenter,
+                  BAR_THICKNESS_TOP_VH,
+                  0
+                )}
+              />
+              {/* barra central */}
+              <div
+                style={baseBarStyle(
+                  centerY,
+                  BAR_THICKNESS_CENTER_VH,
+                  120
+                )}
+              />
+              {/* barra inferior */}
+              <div
+                style={baseBarStyle(
+                  bottomCenter,
+                  BAR_THICKNESS_BOTTOM_VH,
+                  240
+                )}
+              />
+            </>
+          );
+        })()}
       </div>
     </div>
   );
 }
-
-
-  
