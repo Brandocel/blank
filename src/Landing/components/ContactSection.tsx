@@ -12,6 +12,8 @@ export default function ContactSection() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+
   // FORM STATE
   const [form, setForm] = useState({
     firstName: "",
@@ -22,7 +24,10 @@ export default function ContactSection() {
   });
 
   const [errors, setErrors] = useState<any>({});
-  const [captchaOK, setCaptchaOK] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Validate field
   const validateField = (field: string, value: string) => {
@@ -46,7 +51,7 @@ export default function ContactSection() {
     /\S+@\S+\.\S+/.test(form.email.trim()) &&
     form.phone.trim() &&
     form.message.trim() &&
-    captchaOK;
+    !!captchaToken;
 
   // Animación
   useEffect(() => {
@@ -63,10 +68,66 @@ export default function ContactSection() {
   }, []);
 
   // Submit
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
-    console.log("Formulario enviado:", form);
+    setSubmitMessage(null);
+    setSubmitError(null);
+
+    // Validación rápida en front
+    if (!isFormValid || !captchaToken) {
+      setSubmitError("Por favor completa todos los campos y el captcha.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      // ⚠️ Ajusta esta URL al endpoint real de tu API
+      const res = await fetch(
+        import.meta.env.VITE_API_BASE_URL + "/contact",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            firstName: form.firstName,
+            lastName: form.lastName,
+            email: form.email,
+            phone: form.phone,
+            message: form.message,
+            captchaToken, // <-- importante
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Error al enviar el formulario");
+      }
+
+      setSubmitMessage("Mensaje enviado correctamente. ¡Gracias por contactarnos!");
+
+      // Limpia el formulario
+      setForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        message: "",
+      });
+      setErrors({});
+      setCaptchaToken(null);
+      recaptchaRef.current?.reset();
+    } catch (err: any) {
+      setSubmitError(err.message || "Ocurrió un error al enviar el mensaje.");
+      // Opcional: también resetear el captcha si quieres obligar a rellenarlo de nuevo
+      setCaptchaToken(null);
+      recaptchaRef.current?.reset();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -174,30 +235,51 @@ export default function ContactSection() {
           {/* RECAPTCHA */}
           <div className="flex items-center mb-[15px] md:mb-0">
             <ReCAPTCHA
-              sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-              onChange={(token) => setCaptchaOK(!!token)}
-              onExpired={() => setCaptchaOK(false)}
-              onErrored={() => setCaptchaOK(false)}
+              ref={recaptchaRef}
+              sitekey="6LdnVhksAAAAAIVKz0vs0bqmtmdx9CRkeTLDe2Zh" // test key
+              onChange={(token) => {
+                setCaptchaToken(token);
+              }}
+              onExpired={() => {
+                setCaptchaToken(null);
+              }}
+              onErrored={() => {
+                setCaptchaToken(null);
+              }}
             />
           </div>
 
+          {/* MENSAJES DE ESTADO */}
+          {submitMessage && (
+            <p style={{ color: "green", marginTop: "8px", fontSize: "14px" }}>
+              {submitMessage}
+            </p>
+          )}
+          {submitError && (
+            <p style={{ color: "red", marginTop: "8px", fontSize: "14px" }}>
+              {submitError}
+            </p>
+          )}
+
           {/* BOTÓN */}
           <button
-            disabled={!isFormValid}
+            disabled={!isFormValid || submitting}
             style={{
               width: "100%",
-              background: !isFormValid ? "#888" : "#141313",
+              background:
+                !isFormValid || submitting ? "#888" : "#141313",
               color: "#fff",
               padding: "14px 0",
               fontFamily: "Montserrat",
               fontSize: "clamp(12px, 0.833vw, 16px)",
               fontWeight: 600,
               border: "none",
-              cursor: isFormValid ? "pointer" : "not-allowed",
+              cursor:
+                !isFormValid || submitting ? "not-allowed" : "pointer",
               marginTop: "auto",
             }}
           >
-            {t.button}
+            {submitting ? "Enviando..." : t.button}
           </button>
         </form>
 
