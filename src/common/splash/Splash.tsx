@@ -86,7 +86,7 @@ export default function Splash({ onDone }: Props) {
   useEffect(() => {
     const t1 = setTimeout(
       () => setShowLines(true),
-      ZOOM_STRETCH_DURATION - 200
+      ZOOM_STRETCH_DURATION + 450
     );
 
     if (!DEV_MODE) {
@@ -101,7 +101,7 @@ export default function Splash({ onDone }: Props) {
           // tras el crossfade, iniciar desplazamiento de slices
           setTimeout(() => setSlicesMove(true), 260);
         },
-        ZOOM_STRETCH_DURATION + HOLD_AT_MAX - 100
+        ZOOM_STRETCH_DURATION + HOLD_AT_MAX
       );
 
       const t4 = setTimeout(
@@ -164,12 +164,6 @@ export default function Splash({ onDone }: Props) {
           0% {
             transform: translate(-50%, -50%) scale(1, 1);
           }
-          35% {
-            transform: translate(-50%, -50%) scale(3.2, 3.2);
-          }
-          60% {
-            transform: translate(-50%, -50%) scale(6.2, 4.6);
-          }
           100% {
             transform: translate(-50%, -50%) scale(12, 4.3);
           }
@@ -211,7 +205,7 @@ export default function Splash({ onDone }: Props) {
           transform: "translate(-50%, -50%) scale(1)",
           transformOrigin: LOGO_TRANSFORM_ORIGIN,
           filter: "drop-shadow(0 0 10px rgba(255,255,255,.15))",
-          animation: `splash-zoom-stretch ${ZOOM_STRETCH_DURATION}ms linear forwards`,
+          animation: `splash-zoom-stretch ${ZOOM_STRETCH_DURATION}ms cubic-bezier(0.7, 0, 0.84, 0) forwards`,
           opacity: DEV_MODE ? 1 : showLines ? 0 : 1,
           transition: DEV_MODE ? "none" : "opacity 200ms ease",
         }}
@@ -233,20 +227,20 @@ export default function Splash({ onDone }: Props) {
           const bottomCenter = centerY + gapBottomVH;
           const left = 50;
 
+          // Paleta en escala de grises
           const palette = [
-            "#ff0100",
-            "#ffde01",
-            "#ff00cc",
-            "#04fd8f",
-            "#ff9600",
-            "#0084ff",
-            "#f84006",
-            "#ffc601",
-            "#ff4800",
-            "#01ffff",
-            "#a601f4",
-            "#f30b34",
-            "#06f98c",
+            "#ffffff",
+            "#f0f0f0",
+            "#e0e0e0",
+            "#d0d0d0",
+            "#c0c0c0",
+            "#b0b0b0",
+            "#a0a0a0",
+            "#909090",
+            "#808080",
+            "#707070",
+            "#606060",
+            "#505050",
           ];
 
           // Slices horizontales: mismo ancho que la franja, dividimos su grosor en secciones
