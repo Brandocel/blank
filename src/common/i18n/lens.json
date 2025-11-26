@@ -6,17 +6,17 @@
       { "title": "NARRATIVA\nCINEMATOGRÁFICA" },
       { "title": "POST-PRODUCCIÓN\nCURADA" },
       { "title": "DIRECCIÓN\nALTAMENTE CREATIVA" },
-      { "title": "FULL CREATIVE\nDIRECTION" }
+      { "title": "EJECUCIÓN\n CON ESTÉTICA" }
     ]
   },
   "en": {
-    "title": "THROUGH OUR VISION",
+    "title": "THROUGH OUR LENSES",
     "subtitle": "We tell stories and connect with people.",
     "items": [
       { "title": "CINEMATIC\nSTORYTELLING" },
-      { "title": "CURATED\nPOST-PRODUCTION" },
+      { "title": "CURATED POST-\nPRODUCTION" },
       { "title": "FULL CREATIVE\nDIRECTION" },
-      { "title": "FULL CREATIVE\nDIRECTION" }
+      { "title": "AESTHETIC-\nDRIVEN EXECUTION" }
     ]
   }
 }

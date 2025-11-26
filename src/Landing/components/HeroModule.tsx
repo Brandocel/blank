@@ -18,7 +18,6 @@ import oumaLogo from "../../assets/Logos/download.svg";
 import heroJson from "../../common/i18n/hero.json";
 
 const photos = [photo1, photo2, photo3, photo4real];
-// Duplicamos para cinta infinita (desktop)
 const loopPhotos = [...photos, ...photos];
 
 type BrandLogo = {
@@ -121,7 +120,6 @@ function HeroPhoto({ src, maskId }: HeroPhotoProps) {
         will-change-transform
       "
     >
-      {/* Capa base en blanco y negro (solo desktop) */}
       <img
         src={src}
         alt="Hero"
@@ -134,7 +132,6 @@ function HeroPhoto({ src, maskId }: HeroPhotoProps) {
         "
       />
 
-      {/* Capa en color dentro de un SVG con máscara circular */}
       <svg
         className="absolute inset-0 h-full w-full"
         preserveAspectRatio="xMidYMid slice"
@@ -163,7 +160,6 @@ function HeroPhoto({ src, maskId }: HeroPhotoProps) {
         />
       </svg>
 
-      {/* Overlay suave */}
       <div
         className="
           pointer-events-none absolute inset-0
@@ -183,19 +179,17 @@ export default function HeroModule() {
   const heroTrackRef = useRef<HTMLDivElement | null>(null);
   const heroTweenRef = useRef<gsap.core.Tween | null>(null);
 
-  // ---- NUEVO: estado para el slider mobile ----
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
 
-  // Slider automático en mobile (una imagen a la vez, en color)
+  // Slider automático mobile
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentMobileIndex((prev) => (prev + 1) % photos.length);
-    }, 3500); // cada 3.5 segundos
-
+    }, 3500);
     return () => clearInterval(interval);
   }, []);
 
-  // Animación automática del hero (desktop, cinta infinita)
+  // Cinta infinita desktop
   useEffect(() => {
     if (!heroTrackRef.current) return;
 
@@ -228,27 +222,33 @@ export default function HeroModule() {
   return (
     <section className="w-full bg-white text-slate-900">
       {/* COPY DEL HERO */}
-      <div className="mx-auto max-w-6xl px-4 pb-20 text-center">
+      <div className="mx-auto max-w-6xl px-4 pt-6 pb-6 sm:pb-8 md:pt-10 md:pb-16 text-center">
         <p
           className="
             hero-tagline
             whitespace-pre-line
             uppercase
             text-black
+            leading-tight
+            text-[16px]
+            sm:text-[18px]
+            md:text-[22px]
+            lg:text-[26px]
           "
         >
           “{tagline}”
         </p>
       </div>
 
-      {/* ================== HERO FOTOS MOBILE (solo uno, en color) ================== */}
+      {/* HERO FOTOS MOBILE */}
       <div className="w-full md:hidden">
         <div
           className="
             relative
             w-full
-            h-[60vh]
-            max-h-[720px]
+            h-[50vh]
+            sm:h-[54vh]
+            max-h-[640px]
             overflow-hidden
             bg-black
           "
@@ -268,7 +268,6 @@ export default function HeroModule() {
             />
           ))}
 
-          {/* Pequeños indicadores (puntos) */}
           <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
             {photos.map((_, idx) => (
               <button
@@ -290,13 +289,12 @@ export default function HeroModule() {
             ))}
           </div>
 
-          {/* Degradado superior/inferior suave (opcional) */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
       </div>
 
-      {/* ================== HERO FOTOS DESKTOP (NO TOCADO, solo escondido en mobile) ================== */}
+      {/* HERO FOTOS DESKTOP */}
       <div className="w-full hidden md:block">
         <div
           className="
@@ -310,21 +308,19 @@ export default function HeroModule() {
           onMouseEnter={handleHeroMouseEnter}
           onMouseLeave={handleHeroMouseLeave}
         >
-          {/* Track que se mueve */}
           <div ref={heroTrackRef} className="hero-track flex h-full">
             {loopPhotos.map((src, idx) => (
               <HeroPhoto key={idx} src={src} maskId={`hero-mask-${idx}`} />
             ))}
           </div>
 
-          {/* Degradados fijos en los extremos */}
           <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-black via-black/40 to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-black via-black/40 to-transparent" />
         </div>
       </div>
 
       {/* CARRUSEL DE MARCAS */}
-      <div className="w-full bg-black border-t border-neutral-800 py-6 sm:py-8">
+      <div className="w-full bg-black border-t border-neutral-800 py-4 sm:py-5 md:py-6">
         <div className="brands-slider">
           <div className="brands-track">
             {[...brandLogos, ...brandLogos].map((brand, idx) => (
