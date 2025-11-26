@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ReactElement } from "react";
 import LogoSvgRaw from "../../assets/Footer/Blank_Logo.svg?raw";
 
 type Props = { onDone?: () => void };
@@ -38,9 +39,9 @@ const GAP_TOP_MOBILE_VH = 3.6;         // menos separación hacia arriba
 const GAP_BOTTOM_MOBILE_VH = 4.2;      // menos separación hacia abajo
 
 // ⏱ tiempos
-const ZOOM_STRETCH_DURATION = 1800;
-const HOLD_AT_MAX = 600;
-const LINES_DROP_DURATION = 700;
+const ZOOM_STRETCH_DURATION = 1200;
+const HOLD_AT_MAX = 300;
+const LINES_DROP_DURATION = 450;
 
 // 📱 breakpoint para móvil
 const MOBILE_BREAKPOINT = 768;
@@ -52,8 +53,12 @@ export default function Splash({ onDone }: Props) {
   const [visible, setVisible] = useState(true);
   const [showLines, setShowLines] = useState(false);
   const [dropLines, setDropLines] = useState(false);
+  const [explodePieces, setExplodePieces] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const [slicesMove, setSlicesMove] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const useGlow = !isMobile && !prefersReducedMotion;
 
   // Detectar si estamos en móvil o desktop
   useEffect(() => {
@@ -64,8 +69,17 @@ export default function Splash({ onDone }: Props) {
     checkIsMobile();
     window.addEventListener("resize", checkIsMobile);
 
+    // detecta preferencia de usuario para reducir movimiento
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onMQ = (e: MediaQueryListEvent | MediaQueryList) => {
+      setPrefersReducedMotion(!!("matches" in e ? e.matches : (e as MediaQueryList).matches));
+    };
+    onMQ(mq);
+    mq.addEventListener?.("change", onMQ as any);
+
     return () => {
       window.removeEventListener("resize", checkIsMobile);
+      mq.removeEventListener?.("change", onMQ as any);
     };
   }, []);
 
@@ -82,11 +96,20 @@ export default function Splash({ onDone }: Props) {
       );
 
       const t3 = setTimeout(
-        () => setFadeOut(true),
-        ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION - 200
+        () => {
+          setExplodePieces(true);
+          // tras el crossfade, iniciar desplazamiento de slices
+          setTimeout(() => setSlicesMove(true), 260);
+        },
+        ZOOM_STRETCH_DURATION + HOLD_AT_MAX - 100
       );
 
-      const t4 = setTimeout(() => {
+      const t4 = setTimeout(
+        () => setFadeOut(true),
+        ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION + 200
+      );
+
+      const t5 = setTimeout(() => {
         setVisible(false);
         onDone?.();
       }, ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION + 600);
@@ -96,6 +119,7 @@ export default function Splash({ onDone }: Props) {
         clearTimeout(t2);
         clearTimeout(t3);
         clearTimeout(t4);
+        clearTimeout(t5);
       };
     }
 
@@ -157,6 +181,18 @@ export default function Splash({ onDone }: Props) {
           100% { transform: translate(-50%, 110vh); }
         }
 
+        /* Piezas: movimiento hacia arriba/abajo y desvanecer */
+        @keyframes splash-piece-up {
+          0% { transform: translate(-50%, 0); opacity: 1; }
+          50% { opacity: .85; }
+          100% { transform: translate(-50%, -120vh); opacity: 0; }
+        }
+        @keyframes splash-piece-down {
+          0% { transform: translate(-50%, 0); opacity: 1; }
+          50% { opacity: .85; }
+          100% { transform: translate(-50%, 120vh); opacity: 0; }
+        }
+
         /* Hacer que el <svg> se adapte al ancho del contenedor */
         .splash-logo svg {
           width: 100%;
@@ -182,12 +218,13 @@ export default function Splash({ onDone }: Props) {
         dangerouslySetInnerHTML={{ __html: LogoSvgRaw }}
       />
 
-      {/* FRANJAS */}
+      {/* FRANJAS / PIEZAS */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           opacity: showLines ? 1 : 0,
           transition: "none",
+          contain: "paint",
         }}
       >
         {(() => {
@@ -196,55 +233,144 @@ export default function Splash({ onDone }: Props) {
           const bottomCenter = centerY + gapBottomVH;
           const left = 50;
 
-          const baseBarStyle = (
+          const palette = [
+            "#ff0100",
+            "#ffde01",
+            "#ff00cc",
+            "#04fd8f",
+            "#ff9600",
+            "#0084ff",
+            "#f84006",
+            "#ffc601",
+            "#ff4800",
+            "#01ffff",
+            "#a601f4",
+            "#f30b34",
+            "#06f98c",
+          ];
+
+          // Slices horizontales: mismo ancho que la franja, dividimos su grosor en secciones
+          const makeSlices = (
             center: number,
             thicknessVH: number,
-            delayMs: number
-          ) => ({
-            position: "absolute" as const,
-            width: `${barWidthVW}vw`,
-            left: `${left}%`,
-            top: `${center - thicknessVH / 2}vh`,
-            height: `${thicknessVH}vh`,
-            transform: "translate(-50%, 0)",
-            background: DEV_MODE
-              ? "rgba(255, 0, 0, 0.45)" // barras rojas en dev
-              : "#fff",
-            borderRadius: "999px",
-            boxShadow: DEV_MODE
-              ? "0 0 0 rgba(0,0,0,0.0)"
-              : "0 0 12px rgba(0,0,0,0.6)",
-            animation:
-              !DEV_MODE && dropLines
-                ? `splash-line-drop ${LINES_DROP_DURATION}ms cubic-bezier(.3,.7,0,1) ${delayMs}ms forwards`
-                : "none",
-          });
+            count: number
+          ) => {
+            const slices: ReactElement[] = [];
+            const sliceHeightVH = thicknessVH / count;
+            for (let i = 0; i < count; i++) {
+              const yOffsetVH = -thicknessVH / 2 + i * sliceHeightVH;
+              const color = palette[Math.floor(Math.random() * palette.length)];
+              const dirUp = Math.random() < 0.5;
+              const dur = prefersReducedMotion ? 800 : 1400 + Math.floor(Math.random() * 1000); // un poco más corto pero suave
+              const delay = prefersReducedMotion ? 0 : Math.floor(Math.random() * 300);
+              const blur = DEV_MODE ? 0 : (useGlow ? (prefersReducedMotion ? 2 : 4 + Math.floor(Math.random() * 5)) : 0);
+              slices.push(
+                <div
+                  key={`s-${center}-${i}`}
+                  style={{
+                    position: "absolute",
+                    left: `${left}%`,
+                    top: `${center + yOffsetVH}vh`,
+                    width: `${barWidthVW}vw`,
+                    height: `${sliceHeightVH}vh`,
+                    transform: "translate3d(-50%, 0, 0)",
+                    background: DEV_MODE ? "rgba(255,0,0,0.45)" : color,
+                    boxShadow: DEV_MODE || !useGlow
+                      ? "none"
+                      : `0 0 ${blur}px ${color}, 0 0 ${blur * 2}px ${color}55, 0 2px 6px rgba(0,0,0,0.28)`,
+                    borderRadius: "999px",
+                    opacity: 1,
+                    willChange: slicesMove ? "transform, opacity" : undefined,
+                    animation: explodePieces && slicesMove
+                      ? `${dirUp ? "splash-piece-up" : "splash-piece-down"} ${dur}ms cubic-bezier(.22,.61,.36,1) ${delay}ms forwards`
+                      : "none",
+                  }}
+                />
+              );
+            }
+            return slices;
+          };
 
           return (
             <>
-              {/* barra superior */}
+              {/* superior: crossfade de barra a slices */}
+              {/* slices siempre presentes con fade-in */}
+              {makeSlices(topCenter, barThicknessTopVH, isMobile ? 10 : 16).map((el, idx) => (
+                <div key={`top-swrap-${idx}`} style={{ position: "absolute", opacity: explodePieces ? 1 : 0, transition: "opacity 260ms ease" }}>
+                  {el}
+                </div>
+              ))}
+              {/* barra con fade-out cuando explodePieces */}
               <div
-                style={baseBarStyle(
-                  topCenter,
-                  barThicknessTopVH,
-                  0
-                )}
+                style={{
+                  position: "absolute",
+                  width: `${barWidthVW}vw`,
+                  left: `${left}%`,
+                  top: `${topCenter - barThicknessTopVH / 2}vh`,
+                  height: `${barThicknessTopVH}vh`,
+                  transform: "translate(-50%, 0)",
+                  background: DEV_MODE ? "rgba(255, 0, 0, 0.45)" : "#fff",
+                  borderRadius: "999px",
+                  boxShadow: DEV_MODE ? "none" : "0 0 12px rgba(0,0,0,0.6)",
+                  opacity: explodePieces ? 0 : 1,
+                  transition: "opacity 260ms ease",
+                  animation:
+                    !DEV_MODE && dropLines && !explodePieces
+                      ? `splash-line-drop ${LINES_DROP_DURATION}ms cubic-bezier(.3,.7,0,1) 0ms forwards`
+                      : "none",
+                }}
               />
-              {/* barra central */}
+
+              {/* central: crossfade de barra a slices */}
+              {makeSlices(centerY, barThicknessCenterVH, isMobile ? 12 : 18).map((el, idx) => (
+                <div key={`mid-swrap-${idx}`} style={{ position: "absolute", opacity: explodePieces ? 1 : 0, transition: "opacity 260ms ease" }}>
+                  {el}
+                </div>
+              ))}
               <div
-                style={baseBarStyle(
-                  centerY,
-                  barThicknessCenterVH,
-                  120
-                )}
+                style={{
+                  position: "absolute",
+                  width: `${barWidthVW}vw`,
+                  left: `${left}%`,
+                  top: `${centerY - barThicknessCenterVH / 2}vh`,
+                  height: `${barThicknessCenterVH}vh`,
+                  transform: "translate(-50%, 0)",
+                  background: DEV_MODE ? "rgba(255, 0, 0, 0.45)" : "#fff",
+                  borderRadius: "999px",
+                  boxShadow: DEV_MODE ? "none" : "0 0 12px rgba(0,0,0,0.6)",
+                  opacity: explodePieces ? 0 : 1,
+                  transition: "opacity 260ms ease",
+                  animation:
+                    !DEV_MODE && dropLines && !explodePieces
+                      ? `splash-line-drop ${LINES_DROP_DURATION}ms cubic-bezier(.3,.7,0,1) 120ms forwards`
+                      : "none",
+                }}
               />
-              {/* barra inferior */}
+
+              {/* inferior: crossfade de barra a slices */}
+              {makeSlices(bottomCenter, barThicknessBottomVH, isMobile ? 10 : 16).map((el, idx) => (
+                <div key={`bot-swrap-${idx}`} style={{ position: "absolute", opacity: explodePieces ? 1 : 0, transition: "opacity 260ms ease" }}>
+                  {el}
+                </div>
+              ))}
               <div
-                style={baseBarStyle(
-                  bottomCenter,
-                  barThicknessBottomVH,
-                  240
-                )}
+                style={{
+                  position: "absolute",
+                  width: `${barWidthVW}vw`,
+                  left: `${left}%`,
+                  top: `${bottomCenter - barThicknessBottomVH / 2}vh`,
+                  height: `${barThicknessBottomVH}vh`,
+                  transform: "translate(-50%, 0)",
+                  background: DEV_MODE ? "rgba(255, 0, 0, 0.45)" : "#fff",
+                  borderRadius: "999px",
+                  boxShadow: DEV_MODE ? "none" : "0 0 12px rgba(0,0,0,0.6)",
+                  opacity: explodePieces ? 0 : 1,
+                  transition: "opacity 260ms ease",
+                  animation:
+                    !DEV_MODE && dropLines && !explodePieces
+                      ? `splash-line-drop ${LINES_DROP_DURATION}ms cubic-bezier(.3,.7,0,1) 240ms forwards`
+                      : "none",
+                }}
               />
             </>
           );
