@@ -1,11 +1,12 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { useLanguage, type Language } from "../../common/i18n/LanguageContext";
+import { SafeImg } from "../../common/components/SafeImg";
 
-import photo1 from "../../assets/Hero/BicicletaColor.png";
-import photo2 from "../../assets/Hero/PlatiloComida.png";
-import photo3 from "../../assets/Hero/EntradaColor.jpg";
-import photo4real from "../../assets/Hero/MuejerColor.jpg";
+import photo1 from "../../assets/Hero/bicicleta-color.webp";
+import photo2 from "../../assets/Hero/platillo-comida.webp";
+import photo3 from "../../assets/Hero/entrada-color.webp";
+import photo4real from "../../assets/Hero/mujer-color.webp";
 
 // LOGOS DE MARCAS
 import openfilmsLogo from "../../assets/Logos/openfilms.svg";
@@ -44,13 +45,17 @@ const heroDictionary = heroJson as Record<Language, HeroCopy>;
 type HeroPhotoProps = {
   src: string;
   maskId: string;
+  isFirst: boolean;
 };
 
-function HeroPhoto({ src, maskId }: HeroPhotoProps) {
+function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
   const figureRef = useRef<HTMLElement | null>(null);
   const circleRef = useRef<SVGCircleElement | null>(null);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    // sólo reaccionar en desktop
+    if (window.innerWidth < 1024) return;
+
     if (!figureRef.current || !circleRef.current) return;
 
     const rect = figureRef.current.getBoundingClientRect();
@@ -120,9 +125,11 @@ function HeroPhoto({ src, maskId }: HeroPhotoProps) {
         will-change-transform
       "
     >
-      <img
+      {/* Imagen base en escala de grises usando SafeImg */}
+      <SafeImg
         src={src}
         alt="Hero"
+        loading={isFirst ? "eager" : undefined} // primera imagen no es lazy
         className="
           h-full w-full
           object-cover object-center
@@ -132,6 +139,7 @@ function HeroPhoto({ src, maskId }: HeroPhotoProps) {
         "
       />
 
+      {/* Máscara de color */}
       <svg
         className="absolute inset-0 h-full w-full"
         preserveAspectRatio="xMidYMid slice"
@@ -180,18 +188,50 @@ export default function HeroModule() {
   const heroTweenRef = useRef<gsap.core.Tween | null>(null);
 
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
+  const [heroReady, setHeroReady] = useState(false);
+
+  // ✅ Solo esperamos a que cargue la PRIMER imagen del hero
+  useEffect(() => {
+    let mounted = true;
+    const first = photos[0];
+
+    const img = new Image();
+    img.src = first;
+
+    if (img.complete) {
+      if (mounted) setHeroReady(true);
+    } else {
+      img.onload = () => {
+        if (mounted) setHeroReady(true);
+      };
+      img.onerror = () => {
+        if (mounted) setHeroReady(true); // aunque falle, no bloqueamos la UI
+      };
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Slider automático mobile
   useEffect(() => {
+    if (!heroReady) return;
+
     const interval = setInterval(() => {
       setCurrentMobileIndex((prev) => (prev + 1) % photos.length);
     }, 3500);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroReady]);
 
-  // Cinta infinita desktop
+  // Cinta infinita desktop (solo desktop para no matar Lighthouse móvil)
   useEffect(() => {
-    if (!heroTrackRef.current) return;
+    if (!heroTrackRef.current || !heroReady) return;
+
+    if (window.innerWidth < 1024) {
+      // en móvil no corremos GSAP: menos JS, más fluidez
+      return;
+    }
 
     const tween = gsap.fromTo(
       heroTrackRef.current,
@@ -209,13 +249,15 @@ export default function HeroModule() {
     return () => {
       tween.kill();
     };
-  }, []);
+  }, [heroReady]);
 
   const handleHeroMouseEnter = () => {
+    if (window.innerWidth < 1024) return;
     heroTweenRef.current?.pause();
   };
 
   const handleHeroMouseLeave = () => {
+    if (window.innerWidth < 1024) return;
     heroTweenRef.current?.play();
   };
 
@@ -254,18 +296,22 @@ export default function HeroModule() {
           "
         >
           {photos.map((src, idx) => (
-            <img
+            <div
               key={idx}
-              src={src}
-              alt={`Hero mobile ${idx + 1}`}
               className={`
                 absolute inset-0
                 h-full w-full
-                object-cover object-center
                 transition-opacity duration-700 ease-[cubic-bezier(.22,.61,.36,1)]
                 ${idx === currentMobileIndex ? "opacity-100" : "opacity-0"}
               `}
-            />
+            >
+              <SafeImg
+                src={src}
+                alt={`Hero mobile ${idx + 1}`}
+                loading={idx === 0 ? "eager" : undefined}
+                className="h-full w-full object-cover object-center"
+              />
+            </div>
           ))}
 
           <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
@@ -297,20 +343,27 @@ export default function HeroModule() {
       {/* HERO FOTOS DESKTOP */}
       <div className="w-full hidden md:block">
         <div
-          className="
+          className={`
             relative
             w-full
             h-[68vh] md:h-[72vh] lg:h-[76vh]
             max-h-[900px]
             overflow-hidden
             bg-black
-          "
+            ${heroReady ? "opacity-100" : "opacity-0"}
+            transition-opacity duration-500
+          `}
           onMouseEnter={handleHeroMouseEnter}
           onMouseLeave={handleHeroMouseLeave}
         >
           <div ref={heroTrackRef} className="hero-track flex h-full">
             {loopPhotos.map((src, idx) => (
-              <HeroPhoto key={idx} src={src} maskId={`hero-mask-${idx}`} />
+              <HeroPhoto
+                key={idx}
+                src={src}
+                maskId={`hero-mask-${idx}`}
+                isFirst={idx === 0}
+              />
             ))}
           </div>
 
@@ -325,6 +378,7 @@ export default function HeroModule() {
           <div className="brands-track">
             {[...brandLogos, ...brandLogos].map((brand, idx) => (
               <div key={`${brand.alt}-${idx}`} className="brands-slide">
+                {/* Logos con <img> normal para no tocar diseño */}
                 <img
                   src={brand.src}
                   alt={brand.alt}
