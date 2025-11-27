@@ -22,7 +22,6 @@ export default function ContactSection() {
     phone: "",
     message: "",
   });
-  const livewere: any = window as any;
 
   const [errors, setErrors] = useState<any>({});
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
