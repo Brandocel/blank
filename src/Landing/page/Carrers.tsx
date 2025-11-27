@@ -1,7 +1,8 @@
+// src/routes/Careers/Careers.tsx (o donde lo tengas)
+import React from "react";
 import { MdCloudUpload } from "react-icons/md";
 import ReCAPTCHA from "react-google-recaptcha";
 
-import React from "react";
 import bgCareers from "../../assets/Carrers/carrers.png";
 import { useLanguage } from "../../common/i18n/LanguageContext";
 import careersDict from "../../common/i18n/careers.json";
@@ -11,7 +12,8 @@ const Careers: React.FC = () => {
   const { language } = useLanguage();
   const t = (key: string) => (careersDict as any)[language][key] || key;
 
-  const RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+  const RECAPTCHA_SITE_KEY = "6LdnVhksAAAAAIVKz0vs0bqmtmdx9CRkeTLDe2Zh";
+
   const [captchaValue, setCaptchaValue] = React.useState<string | null>(null);
   const [attachedFile, setAttachedFile] = React.useState<File | null>(null);
   const [fileError, setFileError] = React.useState<string | null>(null);
@@ -26,8 +28,11 @@ const Careers: React.FC = () => {
   });
   const [touched, setTouched] = React.useState<{ [k: string]: boolean }>({});
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [showSplash, setShowSplash] = React.useState(true);
+  const recaptchaRef = React.useRef<ReCAPTCHA | null>(null);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 2600);
@@ -36,17 +41,42 @@ const Careers: React.FC = () => {
 
   const handleCaptchaChange = (value: string | null) => {
     setCaptchaValue(value);
+    if (value) {
+      setSubmitError(null);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    if (file && file.size > 3 * 1024 * 1024) {
-      setFileError("El archivo supera el máximo de 3MB");
+
+    if (!file) {
       setAttachedFile(null);
-    } else {
       setFileError(null);
-      setAttachedFile(file);
+      return;
     }
+
+    // formatos permitidos: PDF / JPG / PNG
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setFileError("Formato no permitido. Sube un PDF, JPG o PNG.");
+      setAttachedFile(null);
+      return;
+    }
+
+    // límite 3 MB
+    if (file.size > 3 * 1024 * 1024) {
+      setFileError("El archivo supera el máximo de 3MB.");
+      setAttachedFile(null);
+      return;
+    }
+
+    setFileError(null);
+    setAttachedFile(file);
   };
 
   const handleInputChange = (
@@ -66,15 +96,90 @@ const Careers: React.FC = () => {
   const isRequiredMissing =
     !form.name || !form.lastname || !form.email || !form.phone || !attachedFile;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched({ name: true, lastname: true, email: true, phone: true });
+    setTouched({
+      name: true,
+      lastname: true,
+      email: true,
+      phone: true,
+    });
+    setSubmitSuccess(null);
+
+    if (!captchaValue) {
+      setSubmitError("Por favor completa el reCAPTCHA.");
+      return;
+    }
+
     if (isRequiredMissing) {
       setSubmitError("Por favor completa todos los campos obligatorios.");
       return;
     }
-    setSubmitError(null);
-    // Aquí iría el envío real del formulario
+
+    if (fileError) {
+      setSubmitError(fileError);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      const formData = new FormData();
+      formData.append("firstName", form.name);
+      formData.append("lastName", form.lastname);
+      formData.append("email", form.email);
+      formData.append("phone", form.phone);
+      formData.append("message", form.message);
+      formData.append("portfolio", form.portfolio);
+      formData.append("captchaToken", captchaValue!);
+      if (attachedFile) {
+        formData.append("cvFile", attachedFile);
+      }
+
+      const apiBase =
+        (import.meta as any).env.VITE_API_BASE_URL || "/api";
+
+      const response = await fetch(`${apiBase}/careers`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error("❌ Error al enviar careers:", data);
+        setSubmitError(
+          data?.message ||
+            "Ocurrió un error al enviar tu información. Intenta de nuevo."
+        );
+        return;
+      }
+
+      // éxito
+      setSubmitSuccess(
+        "Tu información se envió correctamente. Gracias por postularte."
+      );
+      setForm({
+        name: "",
+        lastname: "",
+        email: "",
+        phone: "",
+        message: "",
+        portfolio: "",
+      });
+      setAttachedFile(null);
+      setTouched({});
+      setCaptchaValue(null);
+      recaptchaRef.current?.reset();
+    } catch (err) {
+      console.error("❌ Error inesperado en careers:", err);
+      setSubmitError(
+        "Ocurrió un error interno al enviar tu información. Intenta más tarde."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (showSplash) return <Splash onDone={() => setShowSplash(false)} />;
@@ -362,7 +467,7 @@ const Careers: React.FC = () => {
                 <input
                   id="file-input-careers"
                   type="file"
-                  accept=".pdf,.doc,.docx,.zip,.rar,.jpg,.jpeg,.png,.ppt,.pptx,.xls,.xlsx,.txt"
+                  accept=".pdf,.jpg,.jpeg,.png"
                   style={{ display: "none" }}
                   onChange={handleFileChange}
                 />
@@ -385,7 +490,8 @@ const Careers: React.FC = () => {
                         marginTop: 4,
                       }}
                     >
-                      {(attachedFile.size / 1024 / 1024).toFixed(2)} MB
+                      {(attachedFile.size / 1024 / 1024).toFixed(2)} MB · PDF /
+                      JPG / PNG
                     </span>
                   </>
                 ) : (
@@ -398,7 +504,7 @@ const Careers: React.FC = () => {
                         color: "#A6A6A6",
                       }}
                     >
-                      {t("maxsize")}
+                      Formatos: PDF, JPG, PNG · Máx. 3 MB
                     </span>
                   </>
                 )}
@@ -460,6 +566,7 @@ const Careers: React.FC = () => {
               >
                 <div className="flex justify-center">
                   <ReCAPTCHA
+                    ref={recaptchaRef}
                     key={language}
                     sitekey={RECAPTCHA_SITE_KEY}
                     onChange={handleCaptchaChange}
@@ -484,19 +591,23 @@ const Careers: React.FC = () => {
                 border: "none",
                 borderRadius: 4,
                 marginTop: "clamp(8px, 1vw, 24px)",
-                cursor: captchaValue ? "pointer" : "not-allowed",
+                cursor:
+                  captchaValue && !isSubmitting ? "pointer" : "not-allowed",
                 letterSpacing: 0.2,
                 opacity: captchaValue ? 1 : 0.6,
                 transition: "background 0.2s, opacity 0.2s",
               }}
-              disabled={!captchaValue}
+              disabled={!captchaValue || isSubmitting}
             >
-              {t("send")}
+              {isSubmitting ? t("sending") ?? "Enviando..." : t("send")}
             </button>
 
             {submitError && (
-              <div style={{ color: "red", marginTop: 8 }}>
-                {submitError}
+              <div style={{ color: "red", marginTop: 8 }}>{submitError}</div>
+            )}
+            {submitSuccess && (
+              <div style={{ color: "green", marginTop: 8 }}>
+                {submitSuccess}
               </div>
             )}
           </div>
