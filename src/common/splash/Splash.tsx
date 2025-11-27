@@ -39,8 +39,9 @@ const GAP_TOP_MOBILE_VH = 3.6;         // menos separación hacia arriba
 const GAP_BOTTOM_MOBILE_VH = 4.2;      // menos separación hacia abajo
 
 // ⏱ tiempos
+const LOGO_DELAY = 650;
 const ZOOM_STRETCH_DURATION = 1200;
-const HOLD_AT_MAX = 300;
+const HOLD_AT_MAX = 0; // Set to 0 so explosion happens immediately after zoom completes
 const LINES_DROP_DURATION = 450;
 
 // 📱 breakpoint para móvil
@@ -86,13 +87,13 @@ export default function Splash({ onDone }: Props) {
   useEffect(() => {
     const t1 = setTimeout(
       () => setShowLines(true),
-      ZOOM_STRETCH_DURATION + 450
+      LOGO_DELAY + ZOOM_STRETCH_DURATION + 450
     );
 
     if (!DEV_MODE) {
       const t2 = setTimeout(
         () => setDropLines(true),
-        ZOOM_STRETCH_DURATION + HOLD_AT_MAX
+        LOGO_DELAY + ZOOM_STRETCH_DURATION + HOLD_AT_MAX
       );
 
       const t3 = setTimeout(
@@ -101,18 +102,18 @@ export default function Splash({ onDone }: Props) {
           // tras el crossfade, iniciar desplazamiento de slices
           setTimeout(() => setSlicesMove(true), 260);
         },
-        ZOOM_STRETCH_DURATION + HOLD_AT_MAX
+        LOGO_DELAY + ZOOM_STRETCH_DURATION + HOLD_AT_MAX
       );
 
       const t4 = setTimeout(
         () => setFadeOut(true),
-        ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION + 200
+        LOGO_DELAY + ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION + 200
       );
 
       const t5 = setTimeout(() => {
         setVisible(false);
         onDone?.();
-      }, ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION + 600);
+      }, LOGO_DELAY + ZOOM_STRETCH_DURATION + HOLD_AT_MAX + LINES_DROP_DURATION + 600);
 
       return () => {
         clearTimeout(t1);
@@ -205,7 +206,7 @@ export default function Splash({ onDone }: Props) {
           transform: "translate(-50%, -50%) scale(1)",
           transformOrigin: LOGO_TRANSFORM_ORIGIN,
           filter: "drop-shadow(0 0 10px rgba(255,255,255,.15))",
-          animation: `splash-zoom-stretch ${ZOOM_STRETCH_DURATION}ms cubic-bezier(0.7, 0, 0.84, 0) forwards`,
+          animation: `splash-zoom-stretch ${ZOOM_STRETCH_DURATION}ms cubic-bezier(0.7, 0, 0.84, 0) 800ms forwards`,
           opacity: DEV_MODE ? 1 : showLines ? 0 : 1,
           transition: DEV_MODE ? "none" : "opacity 200ms ease",
         }}
