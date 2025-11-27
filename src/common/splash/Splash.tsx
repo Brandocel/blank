@@ -39,9 +39,9 @@ const GAP_TOP_MOBILE_VH = 3.6;         // menos separación hacia arriba
 const GAP_BOTTOM_MOBILE_VH = 4.2;      // menos separación hacia abajo
 
 // ⏱ tiempos
-const LOGO_DELAY = 800;
+const LOGO_DELAY = 650;
 const ZOOM_STRETCH_DURATION = 1200;
-const HOLD_AT_MAX = 300;
+const HOLD_AT_MAX = 0; // Set to 0 so explosion happens immediately after zoom completes
 const LINES_DROP_DURATION = 450;
 
 // 📱 breakpoint para móvil
