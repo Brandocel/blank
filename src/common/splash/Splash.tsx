@@ -161,12 +161,23 @@ export default function Splash({ onDone }: Props) {
       aria-hidden
     >
       <style>{`
-        @keyframes splash-zoom-stretch {
+        /* Zoom para desktop */
+        @keyframes splash-zoom-stretch-desktop {
           0% {
             transform: translate(-50%, -50%) scale(1, 1);
           }
           100% {
             transform: translate(-50%, -50%) scale(24, 8.6);
+          }
+        }
+
+        /* Zoom para móvil (más moderado) */
+        @keyframes splash-zoom-stretch-mobile {
+          0% {
+            transform: translate(-50%, -50%) scale(1, 1);
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(17.5, 4.3);
           }
         }
 
@@ -206,7 +217,7 @@ export default function Splash({ onDone }: Props) {
           transform: "translate(-50%, -50%) scale(1)",
           transformOrigin: LOGO_TRANSFORM_ORIGIN,
           filter: "drop-shadow(0 0 10px rgba(255,255,255,.15))",
-          animation: `splash-zoom-stretch ${ZOOM_STRETCH_DURATION}ms cubic-bezier(0.7, 0, 0.84, 0) 800ms forwards`,
+          animation: `${isMobile ? 'splash-zoom-stretch-mobile' : 'splash-zoom-stretch-desktop'} ${ZOOM_STRETCH_DURATION}ms cubic-bezier(0.7, 0, 0.84, 0) ${LOGO_DELAY}ms forwards`,
           opacity: DEV_MODE ? 1 : showLines ? 0 : 1,
           transition: DEV_MODE ? "none" : "opacity 200ms ease",
         }}

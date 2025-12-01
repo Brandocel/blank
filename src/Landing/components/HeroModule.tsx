@@ -3,10 +3,10 @@ import { gsap } from "gsap";
 import { useLanguage, type Language } from "../../common/i18n/LanguageContext";
 import { SafeImg } from "../../common/components/SafeImg";
 
-import photo1 from "../../assets/Hero/bicicleta-color.webp";
-import photo2 from "../../assets/Hero/platillo-comida.webp";
-import photo3 from "../../assets/Hero/entrada-color.webp";
-import photo4real from "../../assets/Hero/mujer-color.webp";
+import photo1 from "../../assets/Hero/bicicleta-color.webp?url";
+import photo2 from "../../assets/Hero/platillo-comida.webp?url";
+import photo3 from "../../assets/Hero/entrada-color.webp?url";
+import photo4real from "../../assets/Hero/mujer-color.webp?url";
 
 // LOGOS DE MARCAS
 import openfilmsLogo from "../../assets/Logos/openfilms.svg";

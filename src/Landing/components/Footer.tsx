@@ -61,7 +61,13 @@ const Footer: React.FC = () => {
             }}
           />
           <div className="flex gap-[18px]">
-            <a href="#" aria-label="Instagram" style={{ color: "#fff" }}>
+            <a
+              href="https://www.instagram.com/blank.agency_/"
+              aria-label="Instagram"
+              style={{ color: "#fff" }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <FaInstagram
                 style={{
                   width: "clamp(18px,2vw,30px)",
@@ -69,7 +75,13 @@ const Footer: React.FC = () => {
                 }}
               />
             </a>
-            <a href="#" aria-label="Facebook" style={{ color: "#fff" }}>
+            <a
+              href="https://www.facebook.com/people/Blank-Agency/61558392456966/"
+              aria-label="Facebook"
+              style={{ color: "#fff" }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <FaFacebookF
                 style={{
                   width: "clamp(18px,2vw,30px)",
@@ -77,7 +89,13 @@ const Footer: React.FC = () => {
                 }}
               />
             </a>
-            <a href="#" aria-label="LinkedIn" style={{ color: "#fff" }}>
+            <a
+              href="https://www.linkedin.com/company/blank-agency-cancun"
+              aria-label="LinkedIn"
+              style={{ color: "#fff" }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <FaLinkedin
                 style={{
                   width: "clamp(18px,2vw,30px)",

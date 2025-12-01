@@ -14,9 +14,9 @@ const navLinksKeys = [
 ];
 
 const socialLinks = [
-  { icon: "instagram", href: "#", key: "instagram" },
-  { icon: "facebook", href: "#", key: "facebook" },
-  { icon: "linkedin", href: "#", key: "linkedin" },
+  { icon: "instagram", href: "https://www.instagram.com/blank.agency_/", key: "instagram" },
+  { icon: "facebook", href: "https://www.facebook.com/people/Blank-Agency/61558392456966/", key: "facebook" },
+  { icon: "linkedin", href: "https://www.linkedin.com/company/blank-agency-cancun", key: "linkedin" },
 ];
 
 const iconSvg = {
