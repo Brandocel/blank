@@ -33,11 +33,14 @@ const Footer: React.FC = () => {
           maxWidth: 1920,
           paddingLeft: "clamp(32px, 4vw, 80px)",
           paddingRight: "clamp(32px, 4vw, 80px)",
+          paddingTop: "clamp(40px, 8vw, 80px)",
+          paddingBottom: "clamp(40px, 8vw, 80px)",
           minHeight: "clamp(220px, 30vw, 563px)",
           fontFamily: "Montserrat, sans-serif",
           fontWeight: 400,
           fontStyle: "normal",
           fontSize: "clamp(14px, 1vw, 24px)",
+          gap: "clamp(32px, 4vw, 64px)",
         }}
       >
         {/* Columna izquierda: logo y redes */}
