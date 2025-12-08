@@ -8,6 +8,8 @@ import { useLanguage } from "../../common/i18n/LanguageContext";
 import careersDict from "../../common/i18n/careers.json";
 import Splash from "../../common/splash/Splash";
 
+const ENABLE_SPLASH = false;
+
 const Careers: React.FC = () => {
   const { language } = useLanguage();
   const t = (key: string) => (careersDict as any)[language][key] || key;
@@ -31,10 +33,11 @@ const Careers: React.FC = () => {
   const [submitSuccess, setSubmitSuccess] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const [showSplash, setShowSplash] = React.useState(true);
+  const [showSplash, setShowSplash] = React.useState(ENABLE_SPLASH);
   const recaptchaRef = React.useRef<ReCAPTCHA | null>(null);
 
   React.useEffect(() => {
+    if (!ENABLE_SPLASH) return;
     const timer = setTimeout(() => setShowSplash(false), 2600);
     return () => clearTimeout(timer);
   }, []);
@@ -182,7 +185,7 @@ const Careers: React.FC = () => {
     }
   };
 
-  if (showSplash) return <Splash onDone={() => setShowSplash(false)} />;
+  if (ENABLE_SPLASH && showSplash) return <Splash onDone={() => setShowSplash(false)} />;
 
   return (
     <section className="w-full min-h-screen bg-[#fafafa]">
