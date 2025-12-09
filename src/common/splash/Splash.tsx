@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import LogoSvgRaw from "../../assets/Footer/Blank_Logo.svg?raw";
+import splashVideo from "./3c679fb0-801c-44bb-94c2-bad3a73058d6.mp4";
 
 type Props = { onDone?: () => void };
 
@@ -10,6 +11,10 @@ type Props = { onDone?: () => void };
 
 // Modo calibración (barras rojas, sin animaciones de salida)
 const DEV_MODE = false;
+
+// 🖼️ Modo video-splash
+const USE_VIDEO_SPLASH = true;
+const VIDEO_TIMEOUT_MS = 7000; // fallback por si el onEnded no dispara
 
 // 📐 Tamaño del logo
 // 👉 Ajusta SOLO estos 4 valores para controlar el tamaño del logo
@@ -51,6 +56,9 @@ const MOBILE_BREAKPOINT = 768;
 const LOGO_TRANSFORM_ORIGIN = "50% 50%";
 
 export default function Splash({ onDone }: Props) {
+  if (USE_VIDEO_SPLASH) {
+    return <VideoSplash onDone={onDone} />;
+  }
   const [visible, setVisible] = useState(true);
   const [showLines, setShowLines] = useState(false);
   const [dropLines, setDropLines] = useState(false);
@@ -382,6 +390,39 @@ export default function Splash({ onDone }: Props) {
           );
         })()}
       </div>
+    </div>
+  );
+}
+
+function VideoSplash({ onDone }: Props) {
+  const [done, setDone] = useState(false);
+  const finishedRef = useRef(false);
+
+  const finish = () => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    setDone(true);
+    onDone?.();
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(finish, VIDEO_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (done) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black">
+      <video
+        autoPlay
+        muted
+        playsInline
+        className="w-full h-full object-cover"
+        onEnded={finish}
+      >
+        <source src={splashVideo} type="video/mp4" />
+      </video>
     </div>
   );
 }

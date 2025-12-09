@@ -2,7 +2,7 @@ import AppRoutes from "./routes";
 import Splash from "./common/splash/Splash";
 import { useState } from "react";
 
-const ENABLE_SPLASH = false;
+const ENABLE_SPLASH = true;
 
 function App() {
   const [showSplash, setShowSplash] = useState(ENABLE_SPLASH);

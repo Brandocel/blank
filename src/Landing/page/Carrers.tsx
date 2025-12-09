@@ -8,7 +8,7 @@ import { useLanguage } from "../../common/i18n/LanguageContext";
 import careersDict from "../../common/i18n/careers.json";
 import Splash from "../../common/splash/Splash";
 
-const ENABLE_SPLASH = false;
+const ENABLE_SPLASH = true;
 
 const Careers: React.FC = () => {
   const { language } = useLanguage();
