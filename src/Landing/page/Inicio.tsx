@@ -1,9 +1,7 @@
-// src/Landing/page/Inicio.tsx
 import React, { useEffect, Suspense } from "react";
 import HeroModule from "../components/HeroModule";
 import { useLanguage } from "../../common/i18n/LanguageContext";
 
-// Lazy sections
 const FeatureSection = React.lazy(
   () => import("../components/DifferentiatorsSection")
 );
@@ -51,12 +49,10 @@ export default function Inicio() {
 
   return (
     <div className="overflow-x-hidden">
-      {/* 🟢 Above the fold: solo el héroe */}
       <section id="inicio">
         <HeroModule />
       </section>
 
-      {/* 🟡 Below the fold: secciones que se cargan después */}
       <LazyBelowTheFold />
     </div>
   );
