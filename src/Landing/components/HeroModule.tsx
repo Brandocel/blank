@@ -129,7 +129,7 @@ function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
       <SafeImg
         src={src}
         alt="Hero"
-        loading={isFirst ? "eager" : undefined} // primera imagen no es lazy
+        loading={isFirst ? "eager" : "lazy"} // sólo la primera es prioritaria
         className="
           h-full w-full
           object-cover object-center
@@ -139,12 +139,13 @@ function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
         "
       />
 
-      {/* Máscara de color */}
+      {/* Máscara de color usando pattern para no duplicar descargas */}
       <svg
         className="absolute inset-0 h-full w-full"
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
+          {/* máscara animada */}
           <mask id={maskId}>
             <rect width="100%" height="100%" fill="black" />
             <circle
@@ -157,13 +158,29 @@ function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
               opacity={0}
             />
           </mask>
+
+          {/* pattern que usa la misma imagen */}
+          <pattern
+            id={`pattern-${maskId}`}
+            patternUnits="objectBoundingBox"
+            width="1"
+            height="1"
+          >
+            <image
+              href={src}
+              width="100%"
+              height="100%"
+              preserveAspectRatio="xMidYMid slice"
+              crossOrigin="anonymous"
+            />
+          </pattern>
         </defs>
 
-        <image
-          href={src}
+        {/* rectángulo que pinta el color respetando la máscara */}
+        <rect
           width="100%"
           height="100%"
-          preserveAspectRatio="xMidYMid slice"
+          fill={`url(#pattern-${maskId})`}
           mask={`url(#${maskId})`}
         />
       </svg>
@@ -189,8 +206,9 @@ export default function HeroModule() {
 
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
   const [heroReady, setHeroReady] = useState(false);
+  const [showAllDesktopPhotos, setShowAllDesktopPhotos] = useState(false);
 
-  // ✅ Solo esperamos a que cargue la PRIMER imagen del hero
+  // ✅ Sólo esperamos a que cargue la PRIMER imagen del hero
   useEffect(() => {
     let mounted = true;
     const first = photos[0];
@@ -224,14 +242,19 @@ export default function HeroModule() {
     return () => clearInterval(interval);
   }, [heroReady]);
 
-  // Cinta infinita desktop (solo desktop para no matar Lighthouse móvil)
+  // Cinta infinita desktop (solo desktop)
   useEffect(() => {
     if (!heroTrackRef.current || !heroReady) return;
 
     if (window.innerWidth < 1024) {
-      // en móvil no corremos GSAP: menos JS, más fluidez
+      // en móvil no corremos GSAP
       return;
     }
+
+    // después de 3s mostramos todas las fotos (las demás se cargan en segundo plano)
+    const timeout = setTimeout(() => {
+      setShowAllDesktopPhotos(true);
+    }, 3000);
 
     const tween = gsap.fromTo(
       heroTrackRef.current,
@@ -247,6 +270,7 @@ export default function HeroModule() {
     heroTweenRef.current = tween;
 
     return () => {
+      clearTimeout(timeout);
       tween.kill();
     };
   }, [heroReady]);
@@ -260,6 +284,13 @@ export default function HeroModule() {
     if (window.innerWidth < 1024) return;
     heroTweenRef.current?.play();
   };
+
+  // ✅ Mobile: sólo una imagen en pantalla
+  const activeMobilePhoto = photos[currentMobileIndex];
+
+  // ✅ Desktop: primeras 4 al inicio, luego todas
+  const initialDesktopPhotos = loopPhotos.slice(0, 4);
+  const desktopPhotos = showAllDesktopPhotos ? loopPhotos : initialDesktopPhotos;
 
   return (
     <section className="w-full bg-white text-slate-900">
@@ -295,24 +326,16 @@ export default function HeroModule() {
             bg-black
           "
         >
-          {photos.map((src, idx) => (
-            <div
-              key={idx}
-              className={`
-                absolute inset-0
-                h-full w-full
-                transition-opacity duration-700 ease-[cubic-bezier(.22,.61,.36,1)]
-                ${idx === currentMobileIndex ? "opacity-100" : "opacity-0"}
-              `}
-            >
-              <SafeImg
-                src={src}
-                alt={`Hero mobile ${idx + 1}`}
-                loading={idx === 0 ? "eager" : undefined}
-                className="h-full w-full object-cover object-center"
-              />
-            </div>
-          ))}
+          <SafeImg
+            src={activeMobilePhoto}
+            alt={`Hero mobile ${currentMobileIndex + 1}`}
+            loading={currentMobileIndex === 0 ? "eager" : "lazy"}
+            className="
+              h-full w-full
+              object-cover object-center
+              transition-opacity duration-700 ease-[cubic-bezier(.22,.61,.36,1)]
+            "
+          />
 
           <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
             {photos.map((_, idx) => (
@@ -357,7 +380,7 @@ export default function HeroModule() {
           onMouseLeave={handleHeroMouseLeave}
         >
           <div ref={heroTrackRef} className="hero-track flex h-full">
-            {loopPhotos.map((src, idx) => (
+            {desktopPhotos.map((src, idx) => (
               <HeroPhoto
                 key={idx}
                 src={src}
@@ -378,7 +401,6 @@ export default function HeroModule() {
           <div className="brands-track">
             {[...brandLogos, ...brandLogos].map((brand, idx) => (
               <div key={`${brand.alt}-${idx}`} className="brands-slide">
-                {/* Logos con <img> normal para no tocar diseño */}
                 <img
                   src={brand.src}
                   alt={brand.alt}

@@ -1,9 +1,9 @@
-// src/Landing/pages/Inicio.tsx
+// src/Landing/page/Inicio.tsx
 import React, { useEffect, Suspense } from "react";
 import HeroModule from "../components/HeroModule";
 import { useLanguage } from "../../common/i18n/LanguageContext";
 
-// 🔹 Lazy load para secciones pesadas
+// Lazy sections
 const FeatureSection = React.lazy(
   () => import("../components/DifferentiatorsSection")
 );
@@ -13,6 +13,26 @@ const BrandSeparatorSection = React.lazy(
 const LensSection = React.lazy(() => import("../components/LensSection"));
 const VideoSection = React.lazy(() => import("../components/VideoSection"));
 const ContactSection = React.lazy(() => import("../components/ContactSection"));
+
+function LazyBelowTheFold() {
+  return (
+    <Suspense fallback={null}>
+      <section id="nosotros">
+        <FeatureSection />
+        <BrandSeparatorSection />
+        <LensSection />
+      </section>
+
+      <section id="videos">
+        <VideoSection />
+      </section>
+
+      <section id="contacto">
+        <ContactSection />
+      </section>
+    </Suspense>
+  );
+}
 
 export default function Inicio() {
   useLanguage();
@@ -31,26 +51,13 @@ export default function Inicio() {
 
   return (
     <div className="overflow-x-hidden">
+      {/* 🟢 Above the fold: solo el héroe */}
       <section id="inicio">
         <HeroModule />
       </section>
 
-      {/* 🔹 El resto se carga en segundo plano */}
-      <Suspense fallback={null}>
-        <section id="nosotros">
-          <FeatureSection />
-          <BrandSeparatorSection />
-          <LensSection />
-        </section>
-
-        <section id="videos">
-          <VideoSection />
-        </section>
-
-        <section id="contacto">
-          <ContactSection />
-        </section>
-      </Suspense>
+      {/* 🟡 Below the fold: secciones que se cargan después */}
+      <LazyBelowTheFold />
     </div>
   );
 }
