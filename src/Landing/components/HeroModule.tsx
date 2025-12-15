@@ -179,7 +179,6 @@ export default function HeroModule() {
   const heroTweenRef = useRef<gsap.core.Tween | null>(null);
 
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
-  const [heroReady, setHeroReady] = useState(false);
   const [showAllDesktopPhotos, setShowAllDesktopPhotos] = useState(false);
   const [desktopAnimReady, setDesktopAnimReady] = useState(false);
 
@@ -208,17 +207,15 @@ export default function HeroModule() {
 
   // Slider automático mobile
   useEffect(() => {
-    if (!heroReady) return;
-
     const interval = setInterval(() => {
       setCurrentMobileIndex((prev) => (prev + 1) % photos.length);
     }, 3500);
     return () => clearInterval(interval);
-  }, [heroReady]);
+  }, []);
 
   // Cinta infinita desktop (solo desktop)
   useEffect(() => {
-    if (!heroTrackRef.current || !heroReady) return;
+    if (!heroTrackRef.current) return;
 
     if (window.innerWidth < 1024) {
       // en móvil no corremos GSAP
@@ -291,10 +288,10 @@ export default function HeroModule() {
     heroTweenRef.current?.play();
   };
 
-  // ✅ Mobile: sólo una imagen en pantalla
+  // Mobile: sólo una imagen en pantalla
   const activeMobilePhoto = photos[currentMobileIndex];
 
-  // ✅ Desktop: primeras 4 al inicio, luego todas
+  // Desktop: primeras 4 al inicio, luego todas
   const initialDesktopPhotos = loopPhotos.slice(0, 4);
   const desktopPhotos = showAllDesktopPhotos ? loopPhotos : initialDesktopPhotos;
 
@@ -372,16 +369,14 @@ export default function HeroModule() {
       {/* HERO FOTOS DESKTOP */}
       <div className="w-full hidden md:block">
         <div
-          className={`
+          className="
             relative
             w-full
             h-[68vh] md:h-[72vh] lg:h-[76vh]
             max-h-[900px]
             overflow-hidden
             bg-black
-            ${heroReady ? "opacity-100" : "opacity-0"}
-            transition-opacity duration-500
-          `}
+          "
           onMouseEnter={handleHeroMouseEnter}
           onMouseLeave={handleHeroMouseLeave}
         >
@@ -410,6 +405,8 @@ export default function HeroModule() {
                 <img
                   src={brand.src}
                   alt={brand.alt}
+                  loading="lazy"
+                  decoding="async"
                   className="brands-logo-img"
                 />
               </div>

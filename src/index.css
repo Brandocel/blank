@@ -169,4 +169,24 @@ body {
   }
 }
 
+/* ==========================
+   SPLASH VIDEO – OCULTAR CONTROLES
+   ========================== */
 
+@layer base {
+  /* Ocultar cualquier control nativo solo en el video del splash */
+  .splash-video::-webkit-media-controls-enclosure,
+  .splash-video::-webkit-media-controls,
+  .splash-video::-webkit-media-controls-panel,
+  .splash-video::-webkit-media-controls-play-button,
+  .splash-video::-webkit-media-controls-fullscreen-button,
+  .splash-video::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+    -webkit-appearance: none !important;
+  }
+
+  .splash-video::-moz-media-controls,
+  .splash-video::-ms-media-controls {
+    display: none !important;
+  }
+}
