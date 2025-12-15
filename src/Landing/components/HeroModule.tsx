@@ -50,13 +50,13 @@ type HeroPhotoProps = {
 
 function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
   const figureRef = useRef<HTMLElement | null>(null);
-  const circleRef = useRef<SVGCircleElement | null>(null);
+  const overlayRef = useRef<HTMLImageElement | null>(null);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
     // sólo reaccionar en desktop
     if (window.innerWidth < 1024) return;
 
-    if (!figureRef.current || !circleRef.current) return;
+    if (!figureRef.current || !overlayRef.current) return;
 
     const rect = figureRef.current.getBoundingClientRect();
     const width = rect.width;
@@ -75,35 +75,31 @@ function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
 
     const maxRadius = Math.sqrt(width * width + height * height);
 
-    gsap.killTweensOf(circleRef.current);
+    gsap.killTweensOf(overlayRef.current);
 
-    gsap.set(circleRef.current, {
+    gsap.set(overlayRef.current, {
       opacity: 1,
-      attr: {
-        r: 0,
-        cx: x,
-        cy: y,
-      },
+      "--mx": `${x}px`,
+      "--my": `${y}px`,
+      "--mr": "0px",
     });
 
-    gsap.to(circleRef.current, {
+    gsap.to(overlayRef.current, {
       duration: speed,
       ease: "power2.out",
-      attr: {
-        r: maxRadius,
-      },
+      "--mr": `${maxRadius}px`,
     });
   };
 
   const handleMouseLeave = () => {
-    if (!circleRef.current) return;
+    if (!overlayRef.current) return;
 
-    gsap.killTweensOf(circleRef.current);
+    gsap.killTweensOf(overlayRef.current);
 
-    gsap.to(circleRef.current, {
+    gsap.to(overlayRef.current, {
       duration: 0.6,
       ease: "power2.inOut",
-      attr: { r: 0 },
+      "--mr": "0px",
       opacity: 0,
     });
   };
@@ -130,6 +126,8 @@ function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
         src={src}
         alt="Hero"
         loading={isFirst ? "eager" : "lazy"} // sólo la primera es prioritaria
+        fetchPriority={isFirst ? "high" : undefined}
+        decoding="async"
         className="
           h-full w-full
           object-cover object-center
@@ -139,51 +137,27 @@ function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
         "
       />
 
-      {/* Máscara de color usando pattern para no duplicar descargas */}
-      <svg
-        className="absolute inset-0 h-full w-full"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <defs>
-          {/* máscara animada */}
-          <mask id={maskId}>
-            <rect width="100%" height="100%" fill="black" />
-            <circle
-              ref={circleRef}
-              className="mask-circle"
-              r={0}
-              cx={0}
-              cy={0}
-              fill="white"
-              opacity={0}
-            />
-          </mask>
-
-          {/* pattern que usa la misma imagen */}
-          <pattern
-            id={`pattern-${maskId}`}
-            patternUnits="objectBoundingBox"
-            width="1"
-            height="1"
-          >
-            <image
-              href={src}
-              width="100%"
-              height="100%"
-              preserveAspectRatio="xMidYMid slice"
-              crossOrigin="anonymous"
-            />
-          </pattern>
-        </defs>
-
-        {/* rectángulo que pinta el color respetando la máscara */}
-        <rect
-          width="100%"
-          height="100%"
-          fill={`url(#pattern-${maskId})`}
-          mask={`url(#${maskId})`}
-        />
-      </svg>
+      {/* Overlay color con máscara por CSS variables */}
+      <img
+        ref={overlayRef}
+        src={src}
+        alt="Hero color"
+        loading={isFirst ? "eager" : "lazy"}
+        decoding="async"
+        className="
+          pointer-events-none
+          absolute inset-0 h-full w-full
+          object-cover object-center
+          opacity-0
+        "
+        style={{
+          maskImage:
+            "radial-gradient(circle var(--mr, 0px) at var(--mx, 50%) var(--my, 50%), #000 99%, transparent 100%)",
+          WebkitMaskImage:
+            "radial-gradient(circle var(--mr, 0px) at var(--mx, 50%) var(--my, 50%), #000 99%, transparent 100%)",
+          transition: "opacity 0.4s ease",
+        }}
+      />
 
       <div
         className="
@@ -207,25 +181,25 @@ export default function HeroModule() {
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
   const [heroReady, setHeroReady] = useState(false);
   const [showAllDesktopPhotos, setShowAllDesktopPhotos] = useState(false);
+  const [desktopAnimReady, setDesktopAnimReady] = useState(false);
 
   // ✅ Sólo esperamos a que cargue la PRIMER imagen del hero
   useEffect(() => {
     let mounted = true;
-    const first = photos[0];
+    const load = async () => {
+      const first = photos[0];
+      const img = new Image();
+      img.src = first;
+      try {
+        if (!img.complete) await img.decode();
+      } catch (_) {
+        // si decode falla, seguimos
+      }
+      if (!mounted) return;
+      setHeroReady(true);
+    };
 
-    const img = new Image();
-    img.src = first;
-
-    if (img.complete) {
-      if (mounted) setHeroReady(true);
-    } else {
-      img.onload = () => {
-        if (mounted) setHeroReady(true);
-      };
-      img.onerror = () => {
-        if (mounted) setHeroReady(true); // aunque falle, no bloqueamos la UI
-      };
-    }
+    load();
 
     return () => {
       mounted = false;
@@ -251,29 +225,61 @@ export default function HeroModule() {
       return;
     }
 
+    // precargar 2 imágenes antes de iniciar la animación para evitar janks en desktop
+    const warmup = async () => {
+      const candidates = photos.slice(0, 2);
+      try {
+        await Promise.all(
+          candidates.map((src) => {
+            const im = new Image();
+            im.src = src;
+            return im.decode();
+          })
+        );
+      } catch (_) {
+        // ignoramos errores de decode
+      }
+      setDesktopAnimReady(true);
+    };
+
+    warmup();
+
     // después de 3s mostramos todas las fotos (las demás se cargan en segundo plano)
     const timeout = setTimeout(() => {
       setShowAllDesktopPhotos(true);
     }, 3000);
 
-    const tween = gsap.fromTo(
-      heroTrackRef.current,
-      { xPercent: 0 },
-      {
-        xPercent: -50,
-        duration: 45,
-        repeat: -1,
-        ease: "none",
-      }
-    );
+    const startTween = () => {
+      if (!heroTrackRef.current) return;
+      const tween = gsap.fromTo(
+        heroTrackRef.current,
+        { xPercent: 0 },
+        {
+          xPercent: -50,
+          duration: 45,
+          repeat: -1,
+          ease: "none",
+        }
+      );
+      heroTweenRef.current = tween;
+    };
 
-    heroTweenRef.current = tween;
+    if (desktopAnimReady) startTween();
+    else {
+      const poll = setInterval(() => {
+        if (desktopAnimReady) {
+          clearInterval(poll);
+          startTween();
+        }
+      }, 100);
+      return () => clearInterval(poll);
+    }
 
     return () => {
       clearTimeout(timeout);
-      tween.kill();
+      heroTweenRef.current?.kill();
     };
-  }, [heroReady]);
+  }, [heroReady, desktopAnimReady]);
 
   const handleHeroMouseEnter = () => {
     if (window.innerWidth < 1024) return;
@@ -379,7 +385,7 @@ export default function HeroModule() {
           onMouseEnter={handleHeroMouseEnter}
           onMouseLeave={handleHeroMouseLeave}
         >
-          <div ref={heroTrackRef} className="hero-track flex h-full">
+              <div ref={heroTrackRef} className="hero-track flex h-full will-change-transform" style={{ transform: "translateZ(0)" }}>
             {desktopPhotos.map((src, idx) => (
               <HeroPhoto
                 key={idx}
