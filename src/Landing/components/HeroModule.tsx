@@ -48,7 +48,7 @@ type HeroPhotoProps = {
   isFirst: boolean;
 };
 
-function HeroPhoto({ src, maskId, isFirst }: HeroPhotoProps) {
+function HeroPhoto({ src, isFirst }: HeroPhotoProps) {
   const figureRef = useRef<HTMLElement | null>(null);
   const overlayRef = useRef<HTMLImageElement | null>(null);
 
@@ -276,7 +276,7 @@ export default function HeroModule() {
       clearTimeout(timeout);
       heroTweenRef.current?.kill();
     };
-  }, [heroReady, desktopAnimReady]);
+  }, [setHeroReady, desktopAnimReady]);
 
   const handleHeroMouseEnter = () => {
     if (window.innerWidth < 1024) return;
@@ -417,3 +417,7 @@ export default function HeroModule() {
     </section>
   );
 }
+function setHeroReady(_arg0: boolean) {
+  throw new Error("Function not implemented.");
+}
+
