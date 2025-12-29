@@ -312,7 +312,7 @@ export default function HeroModule() {
             lg:text-[26px]
           "
         >
-          “{tagline}”
+          {tagline}
         </p>
       </div>
 
