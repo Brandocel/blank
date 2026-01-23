@@ -25,8 +25,8 @@ const Footer: React.FC = () => {
           w-full mx-auto bg-[#111] text-white 
           flex flex-col items-center 
           md:grid md:grid-cols-[1fr_auto_1fr] md:items-start md:gap-[clamp(24px,6vw,120px)]
-          py:[60px]                       /* móvil: 60px arriba y abajo */
-          md:pt-[clamp(32px,4vw,120px)]   /* desktop: tus valores clamp */
+          py:[60px]
+          md:pt-[clamp(32px,4vw,120px)]
           md:pb-[clamp(32px,4vw,120px)]
         `}
         style={{
@@ -50,10 +50,6 @@ const Footer: React.FC = () => {
             md:items-start md:text-left
           "
           style={{ gap: "clamp(16px, 2vw, 29px)" }}
-          
-          /* grid: columna izquierda */
-          
-          
         >
           <img
             src={Logo}
@@ -110,9 +106,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Columna centro: botón y contacto */}
-           <div className="flex flex-col items-center mt-8 md:mt-0 md:min-w-[320px] md:max-w-[560px] md:mx-auto"
-             /* grid: columna central auto, queda centrada por el template */
-           >
+        <div className="flex flex-col items-center mt-8 md:mt-0 md:min-w-[320px] md:max-w-[560px] md:mx-auto">
           <button
             style={{
               background: "#fff",
@@ -133,6 +127,7 @@ const Footer: React.FC = () => {
           >
             {t.button}
           </button>
+
           <div
             className="text-center"
             style={{ fontSize: "clamp(13px, 1vw, 18px)", marginBottom: 2 }}
@@ -155,9 +150,6 @@ const Footer: React.FC = () => {
             md:items-end md:text-right
           "
           style={{ gap: 0 }}
-          
-          /* grid: columna derecha */
-          
         >
           {footerLinksKeys.map((link) => (
             <Link
@@ -186,8 +178,8 @@ const Footer: React.FC = () => {
           w-full mx-auto bg-[#fff] text-[#111] 
           flex flex-col-reverse items-center justify-center gap-2 
           md:flex-row md:justify-between md:items-center
-          py-[14px]          /* móvil: 14px arriba y abajo */
-          md:py-0            /* desktop: vuelve a minHeight + alineado original */
+          py-[14px]
+          md:py-0
         `}
         style={{
           maxWidth: 1920,
@@ -198,17 +190,28 @@ const Footer: React.FC = () => {
           fontFamily: "Montserrat, sans-serif",
         }}
       >
-        {/* Copyright (abajo en mobile por flex-col-reverse) */}
+        {/* Copyright */}
         <div className="text-center md:text-left">{t.copyright}</div>
 
-        {/* Links legales */}
+        {/* Links legales (scroll al inicio SOLO aquí) */}
         <div className="flex flex-col items-center gap-1 md:flex-row md:gap-[18px]">
-          <a href="#" className="underline" style={{ color: "#111" }}>
+          <Link
+            to="/politicas-de-privacidad"
+            className="underline"
+            style={{ color: "#111" }}
+            onClick={() => window.scrollTo({ top: 0, left: 0, behavior: "auto" })}
+          >
             {t.privacy}
-          </a>
-          <a href="#" className="underline" style={{ color: "#111" }}>
+          </Link>
+
+          <Link
+            to="/terminos-y-condiciones"
+            className="underline"
+            style={{ color: "#111" }}
+            onClick={() => window.scrollTo({ top: 0, left: 0, behavior: "auto" })}
+          >
             {t.terms}
-          </a>
+          </Link>
         </div>
       </div>
     </footer>
